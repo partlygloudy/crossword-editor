@@ -16,27 +16,10 @@ game_id = "";
 $(document).ready(function(){
 
     // Load start menu buttons
-    loadViewStart();
+    loadViewConfig();
 
 });
 
-function loadViewStart() {
-
-    // Show start menu
-    $("#start-menu").css("display", "block");
-
-    // Hide everything else
-    $("#puzzle-config").css("display", "none");
-    $("#puzzle-editor").css("display", "none");
-    $("#puzzle-config-blurb").css("display", "none");
-    $("#input-join-id").css("display", "none");
-    $("#input-user-name").css("display", "none");
-
-    // Event handlers for start menu button clicks
-    $("#button-create-game").click(handleCreateGameClicked);
-    $("#button-join-game").click(handleJoinGameClickedOnce);
-
-}
 
 function loadViewConfig() {
 
@@ -77,11 +60,6 @@ function loadViewSolve() {
 
 }
 
-function handleCreateGameClicked() {
-
-    loadPuzzleConfig();
-
-}
 
 function handleFinishConfigClicked() {
 
@@ -108,50 +86,6 @@ function handleFinishConfigClicked() {
 
 }
 
-function handleJoinGameClickedOnce() {
-
-    // Hide "Create Game" button
-    $("#button-create-game").css("display", "none");
-
-    // Show input fields for username and game id
-    $("#input-join-id").css("display", "block");
-    $("#input-user-name").css("display", "block");
-
-    // Replace event handler for "join game" button
-    $("#button-join-game").off().click(handleJoinGameClickedTwice);
-
-    // Change the color of the join game button
-    $("#button-join-game").text("Join");
-}
-
-function handleJoinGameClickedTwice() {
-
-    // TODO Make sure data in each field is valid
-    username = $("#input-user-name").val();
-    game_id = $("#input-join-id").val().toUpperCase();
-
-    // Request the game from the server
-    $.post("/joingame", JSON.stringify({"username": username, "game_id": game_id}), function(data) {
-
-        // If the game_id wasn't found, report the error
-        if (data.valid_id == 0) {
-            $("#input-join-id").css("background-color", "rgb(255,245,245)");
-            $("#input-join-id").css("color", "rgb(150,0,0)");
-        }
-
-        // Otherwise, load the puzzle
-        else {
-            puzzle = data.puzzle;
-            letters = data.letters;
-            rows = data.puzzle.length;
-            cols = data.puzzle[0].length;
-            loadViewSolve();
-            applyLetters();
-        }
-
-    });
-
-}
 
 function applyLetters() {
 
@@ -534,8 +468,4 @@ function highlightActiveCell() {
     // Highlight the current cell and move the focus to it
     $("#puzzle-cell-num-" + active_row + "-" + active_col).css("background-color", "rgb(220,220,255)");
     $("#puzzle-textbox-num-" + active_row + "-" + active_col).focus();
-}
-
-function postCellUpdate(r, c, new_char) {
-    $.post("/update", JSON.stringify({"game_id": game_id, "r": r, "c": c, "char": new_char}));
 }

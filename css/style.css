@@ -63,26 +63,6 @@ input:focus {
 	font-size: 0.6rem;
 }
 
-.start-button {
-	height: 40px;
-	width: 200px;
-	text-transform: uppercase;
-	color: rgb(100, 100, 100);
-	cursor: pointer;
-	box-shadow: 0 0 5px 0 rgba(0,0,0,.15);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.start-button:hover {
-	background-color: rgb(50, 50, 50);
-	color: rgb(255, 255, 255);
-}
-
-#button-join-game {
-	margin-top: 10px;
-}
 
 .toggle-button {
 	height: 30px;
@@ -171,27 +151,4 @@ input:focus {
 
 #puzzle-config-finish-button:hover {
 	background-color: rgb(240,240,255);
-}
-
-
-.join-game-input {
-	height: 35px;
-	width: 195px;
-	box-shadow: 0 0 5px 0 rgba(0,0,0,.15);
-	border: none;
-	text-align: center;
-	font-size: 0.9rem;
-    color: rgb(125,125,125);
-    font-family: serif;
-    margin-bottom: 5px;
-}
-
-#input-join-id {
-    letter-spacing: 5px;
-    text-transform: uppercase;
-}
-
-::placeholder {
-	font-style: italic;
-	color: rgb(175, 175, 175);
 }
