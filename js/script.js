@@ -250,6 +250,16 @@ function refreshPuzzleDims() {
     rows = parseInt($("#input-rows").val())
     cols = parseInt($("#input-cols").val())
 
+    // Limit to 50 rows or columns
+    if (rows > 40) {
+        rows = 40;
+        $("#input-rows").val("40");
+    }
+    if (cols > 40) {
+        cols = 40;
+        $("#input-cols").val("40");
+    }
+
     // Add or remove rows if necessary
     while (puzzle.length < rows) {
         puzzle.push(new Array(cols).fill(1));
