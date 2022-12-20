@@ -35,6 +35,9 @@ function loadViewConfig() {
     $(".toggle-button").click(handleMirrorButtonClick);
     handleMirrorButtonClick.call( $("#toggle-mirror-flip")[0] );
 
+    // Event handler for adjusting puzzle dimensions
+    $('.input-rc').on('blur', refreshPuzzleDims);
+
     // Add event handler for ready button
     $("#puzzle-config-finish-button").click(handleFinishConfigClicked);
 
@@ -239,6 +242,7 @@ function handleMirrorButtonClick() {
     renderPuzzle();
 
 }
+
 
 function refreshPuzzleDims() {
 
