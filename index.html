@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <title>Crossword Puzzle</title>
+
+	<!-- Character encoding -->
+    <meta charset="UTF-8">
+
+    <!-- CSS -->
+	<link rel="stylesheet" type="text/css" href="static/css/crossword.css">
+
+    <!-- JQuery and javascript for card highlighting -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
+    <script src="/static/scripts/crossword.js"></script>
+
+
+</head>
+
+<body>
+
+    <!-- Container to hold everything we want automatically centered -->
+    <div id="centered-content">
+
+        <!--  Controls for editing the shape & black squares of the puzzle  -->
+        <div id="puzzle-config">
+
+            <!-- Puzzle dimensions -->
+            <span class="config-label-rc">R</span>
+            <input type="text" id="input-rows" class="input-rc" value="21">
+            <span class="config-label-rc">C</span>
+            <input type="text" id="input-cols" class="input-rc" value="21"><br>
+
+            <!-- Enable mirroring to speed up square shading -->
+            <span class="config-label-rc">Mirror</span>
+            <div id="toggle-mirror-vertical" class="toggle-button">Vert.</div>
+            <div id="toggle-mirror-horizontal" class="toggle-button">Horiz.</div>
+            <span class="config-label-rc">Or</span>
+            <div id="toggle-mirror-flip" class="toggle-button">Mirror & Flip</div>
+
+        </div>
+
+        <!--  Table to represent crossword -->
+        <table id="puzzle-editor">
+
+        </table>
+
+        <!-- Controls for creating / joining puzzle -->
+        <div id="start-menu">
+
+            <!-- Start menu buttons -->
+            <div id="button-create-game" class="start-button">Create Game</div>
+            <input type="text" id="input-user-name" maxlength="20" class="join-game-input" autocomplete="off" placeholder="Your Name">
+            <input type="text" id="input-join-id" maxlength="5" class="join-game-input" autocomplete="off" placeholder="Code">
+            <div id="button-join-game" class="start-button">Join Game</div>
+
+        </div>
+
+
+    </div>
+
+    <!-- Text explaining config options and button to finish config -->
+    <div id="puzzle-config-blurb">
+
+        <p id="puzzle-config-blurb-text">Click on cells to toggle between black and white. Then click "Ready" to begin playing. You can use mirroring if your puzzle is symmetrical.</p>
+        <div id="puzzle-config-finish-button">Ready</div>
+
+    </div>
+
+
+</body>
+</html>

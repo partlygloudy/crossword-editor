@@ -1,0 +1,197 @@
+html {
+	height: 100%;
+}
+
+body {
+	height: 100%;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#centered-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+#puzzle-editor {
+	border-collapse: collapse;
+}
+
+.puzzle-cell {
+    height: 25px;
+    width: 25px;
+    border: 1px solid black;
+}
+
+.black-square {
+	background-color: rgb(0, 0, 0);
+}
+
+.white-square {
+	position: relative;
+}
+
+.white-square:hover {
+	background-color: rgb(240, 240, 240);
+}
+
+input:focus {
+    outline: none;
+}
+
+.puzzle-textbox {
+	height: 100%;
+	width: 100%;
+	border: none;
+	margin: 0px;
+	padding: 0px;
+	text-align: center;
+	font-size: 1.2rem;
+	font-weight: bold;
+	text-transform: uppercase;
+	cursor: pointer;
+	background-color: rgba(0, 0, 0, 0.0);
+	caret-color: transparent;
+}
+
+.puzzle-textbox-label {
+	position: absolute;
+	font-size: 0.6rem;
+}
+
+.start-button {
+	height: 40px;
+	width: 200px;
+	text-transform: uppercase;
+	color: rgb(100, 100, 100);
+	cursor: pointer;
+	box-shadow: 0 0 5px 0 rgba(0,0,0,.15);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.start-button:hover {
+	background-color: rgb(50, 50, 50);
+	color: rgb(255, 255, 255);
+}
+
+#button-join-game {
+	margin-top: 10px;
+}
+
+.toggle-button {
+	height: 30px;
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	color: rgb(100, 100, 100);
+	cursor: pointer;
+	box-shadow: 0 0 5px 0 rgba(0,0,0,.15);
+	border: 1px solid white;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.toggle-button:hover {
+	background-color: rgb(240,240,240) !important;
+	border: 1px solid rgb(240,240,240) !important;
+}
+
+#toggle-mirror-vertical {
+	width: 60px;
+	margin: 0px 10px 0px 10px;
+}
+
+#toggle-mirror-horizontal {
+	width: 60px;
+	margin: 0px 30px 0px 0px;
+}
+
+#toggle-mirror-flip {
+	width: 100px;
+	margin: 0px 0px 0px 10px;
+}
+
+
+#puzzle-config {
+	display: flex;
+	align-items: center;
+	margin-bottom: 15px;
+	font-size: 0.75rem;
+	color: rgb(100, 100, 100);
+}
+
+.input-rc {
+	margin: 0 10px 0 10px;
+	width: 30px;
+	height: 25px;
+	text-align: center;
+	font-size: 0.75rem;
+	box-shadow: 0 0 5px 0 rgba(0,0,0,.15);
+	border: none;
+}
+
+#input-cols {
+	margin-right: 30px;
+}
+
+.config-label-rc {
+}
+
+#puzzle-config-blurb {
+	margin-left: 40px;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+#puzzle-config-blurb-text {
+	font-size: 0.8rem;
+	width: 160px;
+	text-align: center;
+}
+
+#puzzle-config-finish-button {
+	width: 100px;
+	height: 30px;
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	color: rgb(100, 100, 100);
+	cursor: pointer;
+	box-shadow: 0 0 5px 0 rgba(0,0,0,.15);
+	display: flex;
+	align-items: center;
+	justify-content: center;	
+}
+
+#puzzle-config-finish-button:hover {
+	background-color: rgb(240,240,255);
+}
+
+
+.join-game-input {
+	height: 35px;
+	width: 195px;
+	box-shadow: 0 0 5px 0 rgba(0,0,0,.15);
+	border: none;
+	text-align: center;
+	font-size: 0.9rem;
+    color: rgb(125,125,125);
+    font-family: serif;
+    margin-bottom: 5px;
+}
+
+#input-join-id {
+    letter-spacing: 5px;
+    text-transform: uppercase;
+}
+
+::placeholder {
+	font-style: italic;
+	color: rgb(175, 175, 175);
+}
