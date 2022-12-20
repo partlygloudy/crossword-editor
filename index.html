@@ -19,6 +19,41 @@
 
 <body>
 
+    <!-- Text explaining options for editing puzzle and selectors for choosing which mode to use -->
+    <div id="cursor-mode-panel">
+
+        <p id="cursor-mode-panel-text">Choose whether to place black squares, circles, highlighted squares, or multi-letter squares</p>
+
+        <!-- Selector for black square placement mode -->
+        <div class="cursor-mode-row-wrapper">
+            <div class="cursor-mode-icon" id="cursor-mode-black-icon"></div>
+            <div class="cursor-mode-button cursor-mode-button-selected" id="cursor-button-black">Black Square</div>
+        </div>
+        
+        <!-- Selector for circle placement mode -->
+        <div class="cursor-mode-row-wrapper">
+            <div class="cursor-mode-icon" id="cursor-mode-circle-icon">
+                <svg viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" id="cell-circle-icon">
+                    <circle cx="12.5" cy="12.5" r="12" class="cell-circle"></circle>
+                </svg>
+            </div>
+            <div class="cursor-mode-button" id="cursor-button-circle">Circle</div>
+        </div>
+
+        <!-- Selector for highlight placement mode -->
+        <div class="cursor-mode-row-wrapper">
+            <div class="cursor-mode-icon" id="cursor-mode-color-icon"></div>
+            <div class="cursor-mode-button" id="cursor-button-highlight">Highlight</div>
+        </div>
+
+        <!-- Selector for mutli-letter placement mode -->
+        <div class="cursor-mode-row-wrapper">
+            <div class="cursor-mode-icon" id="cursor-mode-multi-icon"></div>
+            <div class="cursor-mode-button" id="cursor-button-multi">Multi-Letter</div>
+        </div>
+
+    </div>
+
     <!-- Container to hold everything we want automatically centered -->
     <div id="centered-content">
 

@@ -8,8 +8,11 @@ nav_direction = "HORIZONTAL"; // ["HORIZONTAL", "VERTICAL"]
 advance = 0;
 puzzle = [];
 letters = [];
+circles = [];
+colors = [];
 mode = "EDIT"; // ["EDIT", "SOLVE"]
 mirror_mode = "NONE"; // ["HORIZ", "VERT", "FLIP", "NONE"]
+cursor_mode = "BLACK"  // ["BLACK", "CIRCLE", "COLOR", "MUTLI"]
 game_id = "";
 
 
@@ -30,10 +33,14 @@ function loadViewConfig() {
     $("#puzzle-config").css("display", "flex");
     $("#puzzle-editor").css("display", "block");
     $("#puzzle-config-blurb").css("display", "flex");
+    $("#cursor-mode-panel").css("display", "flex");
 
     // Add event handlers to toggle buttons - activate "flip" mode by default
     $(".toggle-button").click(handleMirrorButtonClick);
     handleMirrorButtonClick.call( $("#toggle-mirror-flip")[0] );
+
+    // Add event handlers to the cursor mode buttons
+    $(".cursor-mode-button").click(handleCursorModeClick);
 
     // Event handler for adjusting puzzle dimensions
     $('.input-rc').on('blur', refreshPuzzleDims);
@@ -56,6 +63,7 @@ function loadViewSolve() {
     $("#puzzle-config").css("display", "none");
     $("#puzzle-editor").css("display", "block");
     $("#puzzle-config-blurb").css("display", "none");
+    $("#cursor-mode-panel").css("display", "none");
 
     // Switch to "Solve" mode and re-render puzzle
     mode = "SOLVE";
@@ -81,11 +89,6 @@ function handleFinishConfigClicked() {
             }
         }
     }
-
-    // Notify server that new game was created
-    $.post("/newgame", JSON.stringify({"puzzle": puzzle, "letters": letters}), function(data) {
-        game_id = data.game_id;
-    });
 
 }
 
@@ -128,30 +131,45 @@ function handleEditHoverOut() {
     }
 }
 
-function handleEditToggle() {
+function handleEditCell() {
 
     // Get cell row and column
     cell_id = $(this).attr("id").split("-");
     cell_row = parseInt(cell_id[3]);
     cell_col = parseInt(cell_id[4]);
 
-    // Update clicked cell
-    var status = puzzle[cell_row][cell_col];
-    if (status == 0) {
-        status = 1;
-    } else {
-        status = 0;
-    }
-    puzzle[cell_row][cell_col] = status;
+    if (cursor_mode == "BLACK") {
 
-    // Apply mirror and flip effects
-    if (mirror_mode == "HORIZ") {
-        puzzle[rows - cell_row - 1][cell_col] = status;
-    } else if (mirror_mode == "VERT") {
-        puzzle[cell_row][cols - cell_col - 1] = status;
-    } else if (mirror_mode == "FLIP") {
-        puzzle[rows - cell_row - 1][cols - cell_col - 1] = status;
+        // Update clicked cell
+        var status = puzzle[cell_row][cell_col];
+        if (status == 0) {
+            status = 1;
+        } else {
+            status = 0;
+        }
+        puzzle[cell_row][cell_col] = status;
+
+        // Apply mirror and flip effects
+        if (mirror_mode == "HORIZ") {
+            puzzle[rows - cell_row - 1][cell_col] = status;
+        } else if (mirror_mode == "VERT") {
+            puzzle[cell_row][cols - cell_col - 1] = status;
+        } else if (mirror_mode == "FLIP") {
+            puzzle[rows - cell_row - 1][cols - cell_col - 1] = status;
+        }
+
+    } else if (cursor_mode == "CIRCLE") {
+
+        var status = circles[cell_row][cell_col];
+        if (status == 0) {
+            status = 1;
+        } else {
+            status = 0;
+        }
+        circles[cell_row][cell_col] = status;
+
     }
+
 
     // Redraw puzzle with changes
     renderPuzzle();
@@ -263,15 +281,19 @@ function refreshPuzzleDims() {
     // Add or remove rows if necessary
     while (puzzle.length < rows) {
         puzzle.push(new Array(cols).fill(1));
+        circles.push(new Array(cols).fill(0));
     }
     puzzle.length = rows;
+    circles.length = rows;
 
     // Add or remove cols if necessary
     for (i=0; i<puzzle.length; i++) {
         if (puzzle[i].length < cols) {
             puzzle[i] = puzzle[i].concat(new Array(cols - puzzle[i].length).fill(1));
+            circles[i] = circles[i].concat(new Array(cols - circles[i].length).fill(0));
         }
         puzzle[i].length = cols;
+        circles[i].length = cols;
     }
 
     // Render the puzzle with the new dimensions
@@ -307,6 +329,23 @@ function renderPuzzle() {
                 new_cell.addClass("white-square");
                 new_cell.attr("id", "puzzle-cell-num-" + r + "-" + c);
 
+                // Add circle if cell was assigned a circle
+                if (circles[r][c] == 1) {
+
+                    // SVG tag
+                    new_cell_circle_svg = $("<svg></svg>").attr("viewBox", "0 0 25 25").attr("xmlns", "http://www.w3.org/2000/svg");
+                    new_cell_circle_svg.addClass("cell-circle-svg");
+
+                    // Circle tag inside the svg
+                    new_cell_circle = $("<circle></circle>").attr("cx", "12.5").attr("cy", "12.5").attr("r", "12");
+                    new_cell_circle.addClass("cell-circle");
+
+                    // Add circle to svg and svg to cell
+                    new_cell_circle_svg.append(new_cell_circle);
+                    new_cell.append(new_cell_circle_svg);
+
+                }
+
                 // Add number if cell starts a word
                 if ((r == 0) || (c == 0) || (puzzle[r-1][c] == 0) || (puzzle[r][c-1] == 0)) {
                     new_cell_label = $("<div>" + clue_count + "</div>");
@@ -328,7 +367,14 @@ function renderPuzzle() {
 
         // Add row to column
         $("#puzzle-editor").append(new_row);
+
     }
+
+    // Refresh the puzzle html so any svgs appear / update
+    $("#puzzle-editor").html($("#puzzle-editor").html());
+
+    // Apply any saved lettering
+    applyLetters();
 
     // When switching to solve mode, activate handlers
     if (mode == "SOLVE") {
@@ -345,7 +391,7 @@ function renderPuzzle() {
 
         // Activate handlers for editor features
         $(".puzzle-cell").hover(handleEditHoverIn, handleEditHoverOut);
-        $(".puzzle-cell").click(handleEditToggle);
+        $(".puzzle-cell").click(handleEditCell);
         $(".puzzle-cell").css("cursor", "pointer");
     }
 }
@@ -438,7 +484,6 @@ function handleKeyDown(e) {
         char = String.fromCharCode(e.which);
         letters[active_row][active_col] = char
         advance = 1;
-        postCellUpdate(active_row, active_col, char);
     }
 
     // Backspace
@@ -446,7 +491,6 @@ function handleKeyDown(e) {
         $(this).val("");
         letters[active_row][active_col] = "_";
         advance = -1;
-        postCellUpdate(active_row, active_col, "_");
     }
 
     // Otherwise, ignore keypress
@@ -482,4 +526,28 @@ function highlightActiveCell() {
     // Highlight the current cell and move the focus to it
     $("#puzzle-cell-num-" + active_row + "-" + active_col).css("background-color", "rgb(220,220,255)");
     $("#puzzle-textbox-num-" + active_row + "-" + active_col).focus();
+}
+
+
+function handleCursorModeClick() {
+
+    // Reset the highlighting of the buttons
+    $(".cursor-mode-button-selected").removeClass("cursor-mode-button-selected");
+    $(this).addClass("cursor-mode-button-selected");
+
+    // Update the cursor mode based on which button was clicked
+    if ($(this).attr("id") == "cursor-button-black") {
+        cursor_mode = "BLACK";
+    } else if ($(this).attr("id") == "cursor-button-circle") {
+        cursor_mode = "CIRCLE";
+    } else if ($(this).attr("id") == "cursor-button-highlight") {
+        cursor_mode = "HIGHLIGHT";
+    } else if ($(this).attr("id") == "cursor-button-multi") {
+        cursor_mode = "MULTI";
+    } else {
+        return  // ???
+    }
+
+
+
 }
