@@ -8,12 +8,18 @@ nav_direction = "HORIZONTAL"; // ["HORIZONTAL", "VERTICAL"]
 advance = 0;
 puzzle = [];
 letters = [];
-circles = [];
-colors = [];
 mode = "EDIT"; // ["EDIT", "SOLVE"]
 mirror_mode = "NONE"; // ["HORIZ", "VERT", "FLIP", "NONE"]
 cursor_mode = "BLACK"  // ["BLACK", "CIRCLE", "COLOR", "MUTLI"]
-game_id = "";
+
+// Vars for tracking circled cells
+circles = [];
+
+// Vars for tracking manually highlighted cells
+highlights = [];
+highlight_colors = ["R", "O", "Y", "G", "B", "I", "V"];
+selected_color_index = 0;
+selected_color = "R";
 
 
 $(document).ready(function(){
@@ -41,6 +47,7 @@ function loadViewConfig() {
 
     // Add event handlers to the cursor mode buttons
     $(".cursor-mode-button").click(handleCursorModeClick);
+    $("#cursor-mode-highlight-icon").click(handleHighlightColorClick);
 
     // Event handler for adjusting puzzle dimensions
     $('.input-rc').on('blur', refreshPuzzleDims);
@@ -117,20 +124,6 @@ function toggleNavDirection() {
     }
 }
 
-function handleEditHoverIn() {
-
-    $(this).css("background-color", "rgb(160,160,160)");
-
-}
-
-function handleEditHoverOut() {
-    if ($(this).hasClass("black-square")) {
-        $(this).css("background-color", "rgb(0,0,0)");
-    } else {
-        $(this).css("background-color", "rgb(255,255,255)");
-    }
-}
-
 function handleEditCell() {
 
     // Get cell row and column
@@ -167,6 +160,17 @@ function handleEditCell() {
             status = 0;
         }
         circles[cell_row][cell_col] = status;
+
+    } else if (cursor_mode == "HIGHLIGHT") {
+
+        var status = highlights[cell_row][cell_col];
+
+        if (status == selected_color) {
+            status = "";
+        } else {
+            status = selected_color;
+        }
+        highlights[cell_row][cell_col] = status;
 
     }
 
@@ -282,18 +286,22 @@ function refreshPuzzleDims() {
     while (puzzle.length < rows) {
         puzzle.push(new Array(cols).fill(1));
         circles.push(new Array(cols).fill(0));
+        highlights.push(new Array(cols).fill(""));
     }
     puzzle.length = rows;
     circles.length = rows;
+    highlights.length = rows;
 
     // Add or remove cols if necessary
     for (i=0; i<puzzle.length; i++) {
         if (puzzle[i].length < cols) {
             puzzle[i] = puzzle[i].concat(new Array(cols - puzzle[i].length).fill(1));
             circles[i] = circles[i].concat(new Array(cols - circles[i].length).fill(0));
+            highlights[i] = highlights[i].concat(new Array(cols - highlights[i].length).fill(""));
         }
         puzzle[i].length = cols;
         circles[i].length = cols;
+        highlights[i].length = cols;
     }
 
     // Render the puzzle with the new dimensions
@@ -354,6 +362,11 @@ function renderPuzzle() {
                     clue_count = clue_count + 1;
                 }
 
+                // Add highlighting if we specified highlighting
+                if (highlights[r][c] != "") {
+                    new_cell.addClass("cell-highlight-" + highlights[r][c]);
+                }
+
                 new_textbox = $("<input></input>").attr("type", "text").attr("maxlength", "1");
                 new_textbox.addClass("puzzle-textbox");
                 new_textbox.attr("id", "puzzle-textbox-num-" + r + "-" + c);
@@ -390,9 +403,9 @@ function renderPuzzle() {
     } else if (mode == "EDIT") {
 
         // Activate handlers for editor features
-        $(".puzzle-cell").hover(handleEditHoverIn, handleEditHoverOut);
         $(".puzzle-cell").click(handleEditCell);
         $(".puzzle-cell").css("cursor", "pointer");
+
     }
 }
 
@@ -505,7 +518,8 @@ function handleKeyDown(e) {
 function highlightActiveCell() {
 
     // Reset all squares
-    $(".white-square").css("background-color", "rgb(255,255,255)");
+    $(".active-row-cell").removeClass("active-row-cell");
+    $(".active-cell").removeClass("active-cell");
 
     // Shade all cells for the current word
     dirs = [-1, 1];
@@ -513,7 +527,7 @@ function highlightActiveCell() {
         row = active_row;
         col = active_col;
         while ((row < rows) && (row >= 0) && (col < cols) && (col >= 0) && $("#puzzle-cell-num-" + row + "-" + col).hasClass("white-square")) {
-            $("#puzzle-cell-num-" + row + "-" + col).css("background-color", "rgb(255,255,220)");
+            $("#puzzle-cell-num-" + row + "-" + col).addClass("active-row-cell");
             if (nav_direction == "HORIZONTAL") {
                 col = col + (1 * dirs[i]);
             }
@@ -524,7 +538,7 @@ function highlightActiveCell() {
     }
 
     // Highlight the current cell and move the focus to it
-    $("#puzzle-cell-num-" + active_row + "-" + active_col).css("background-color", "rgb(220,220,255)");
+    $("#puzzle-cell-num-" + active_row + "-" + active_col).addClass("active-cell");
     $("#puzzle-textbox-num-" + active_row + "-" + active_col).focus();
 }
 
@@ -549,5 +563,33 @@ function handleCursorModeClick() {
     }
 
 
+}
+
+
+function handleHighlightColorClick() {
+
+    // If the cursor mode isn't HIGHLIGHT, switch to that mode
+    if (cursor_mode != "HIGHLIGHT") {
+        $(".cursor-mode-button-selected").removeClass("cursor-mode-button-selected");
+        $("#cursor-button-highlight").addClass("cursor-mode-button-selected");
+        cursor_mode = "HIGHLIGHT";
+    } else {
+
+        // Advance color by one in the list
+        selected_color_index = (selected_color_index + 1) % highlight_colors.length;
+        selected_color = highlight_colors[selected_color_index];
+
+        // Update the tag for the highlight icon box
+        $("#cursor-mode-highlight-icon").removeClass("cell-highlight-R");
+        $("#cursor-mode-highlight-icon").removeClass("cell-highlight-O");
+        $("#cursor-mode-highlight-icon").removeClass("cell-highlight-Y");
+        $("#cursor-mode-highlight-icon").removeClass("cell-highlight-G");
+        $("#cursor-mode-highlight-icon").removeClass("cell-highlight-B");
+        $("#cursor-mode-highlight-icon").removeClass("cell-highlight-I");
+        $("#cursor-mode-highlight-icon").removeClass("cell-highlight-V");
+
+        $("#cursor-mode-highlight-icon").addClass("cell-highlight-" + selected_color);
+
+    }
 
 }
