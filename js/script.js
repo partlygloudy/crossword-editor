@@ -21,6 +21,10 @@ highlight_colors = ["R", "O", "Y", "G", "B", "I", "V"];
 selected_color_index = 0;
 selected_color = "R";
 
+// Vars for tracking multi-letter cells
+multiletters = []
+selected_multi_num = 2;
+
 
 $(document).ready(function(){
 
@@ -48,6 +52,7 @@ function loadViewConfig() {
     // Add event handlers to the cursor mode buttons
     $(".cursor-mode-button").click(handleCursorModeClick);
     $("#cursor-mode-highlight-icon").click(handleHighlightColorClick);
+    $("#cursor-mode-multi-icon").click(handleMultiIconClick);
 
     // Event handler for adjusting puzzle dimensions
     $('.input-rc').on('blur', refreshPuzzleDims);
@@ -172,6 +177,17 @@ function handleEditCell() {
         }
         highlights[cell_row][cell_col] = status;
 
+    } else if (cursor_mode == "MULTI") {
+
+        var status = multiletters[cell_row][cell_col];
+
+        if (status == selected_multi_num) {
+            status = 1;
+        } else {
+            status = selected_multi_num;
+        }
+        multiletters[cell_row][cell_col] = status;
+
     }
 
 
@@ -287,10 +303,12 @@ function refreshPuzzleDims() {
         puzzle.push(new Array(cols).fill(1));
         circles.push(new Array(cols).fill(0));
         highlights.push(new Array(cols).fill(""));
+        multiletters.push(new Array(cols).fill(1));
     }
     puzzle.length = rows;
     circles.length = rows;
     highlights.length = rows;
+    multiletters.length = rows;
 
     // Add or remove cols if necessary
     for (i=0; i<puzzle.length; i++) {
@@ -298,10 +316,12 @@ function refreshPuzzleDims() {
             puzzle[i] = puzzle[i].concat(new Array(cols - puzzle[i].length).fill(1));
             circles[i] = circles[i].concat(new Array(cols - circles[i].length).fill(0));
             highlights[i] = highlights[i].concat(new Array(cols - highlights[i].length).fill(""));
+            multiletters[i] = multiletters[i].concat(new Array(cols - multiletters[i].length).fill(1));
         }
         puzzle[i].length = cols;
         circles[i].length = cols;
         highlights[i].length = cols;
+        multiletters[i].length = cols;
     }
 
     // Render the puzzle with the new dimensions
@@ -362,15 +382,38 @@ function renderPuzzle() {
                     clue_count = clue_count + 1;
                 }
 
+                // Add identifier in the lower right if this is a multi-letter cell
+                if (multiletters[r][c] != 1) {
+                    new_cell_multi_label = $("<div>" + multiletters[r][c] + "</div>");
+                    new_cell_multi_label.addClass("puzzle-textbox-multi-label");
+                    new_cell.append(new_cell_multi_label);
+                }
+
                 // Add highlighting if we specified highlighting
                 if (highlights[r][c] != "") {
                     new_cell.addClass("cell-highlight-" + highlights[r][c]);
                 }
 
-                new_textbox = $("<input></input>").attr("type", "text").attr("maxlength", "1");
-                new_textbox.addClass("puzzle-textbox");
-                new_textbox.attr("id", "puzzle-textbox-num-" + r + "-" + c);
-                new_cell.append(new_textbox);
+                // Create an input/textarea inside the table cell
+                // If the cell is configured for multiple letters, add the appropriate classes
+                var new_textbox;
+
+                if (multiletters[r][c] == 1) {
+                    new_textbox = $("<input></input>").attr("type", "text").attr("maxlength", "1");
+                    new_textbox.addClass("puzzle-textbox");
+                    new_textbox.attr("id", "puzzle-textbox-num-" + r + "-" + c);
+                    new_cell.append(new_textbox);
+                } else {
+                    new_textbox_wrapper = $("<div></div>").addClass("multi-letter-box-wrapper"); 
+                    new_textbox = $("<textarea></textarea>").attr("maxlength", multiletters[r][c]);
+                    new_textbox.addClass("multi-letter-box");
+                    new_textbox.addClass("multi-letter-box-" + multiletters[r][c]);
+                    new_textbox.addClass("puzzle-textbox");
+                    new_textbox.attr("id", "puzzle-textbox-num-" + r + "-" + c);
+                    new_textbox_wrapper.append(new_textbox);
+                    new_cell.append(new_textbox_wrapper);
+                }
+
             }
 
             // Add cell to row
@@ -431,6 +474,11 @@ function handleCellClick() {
 }
 
 function handleAdvancing() {
+
+    // if the current cell is a multi-letter cell, don't auto-advance
+    if (multiletters[active_row][active_col] != 1) {
+        return;
+    }
 
     // Advance active cell
     if (nav_direction == "HORIZONTAL") {
@@ -493,17 +541,39 @@ function handleKeyDown(e) {
 
     // Alphabetical character
     else if (((e.which >= 65) && (e.which <= 90)) || ((e.which >= 97) && (e.which <= 122))) {
-        $(this).val("");
-        char = String.fromCharCode(e.which);
-        letters[active_row][active_col] = char
-        advance = 1;
+        if (multiletters[active_row][active_col] == 1) {
+            $(this).val("");
+            char = String.fromCharCode(e.which);
+            letters[active_row][active_col] = char
+            advance = 1;
+        } else {
+            if ($(this).val()[0] == "_") {
+                char =  String.fromCharCode(e.which);
+                $(this).val(char);
+                letters[active_row][active_col] = char
+            } else {
+                letters[active_row][active_col] = $(this).val();
+            }
+        }
     }
 
     // Backspace
     else if (e.which == 8) {
-        $(this).val("");
-        letters[active_row][active_col] = "_";
-        advance = -1;
+        if (multiletters[active_row][active_col] == 1) {
+            $(this).val("");
+            letters[active_row][active_col] = "_";
+            advance = -1;  
+        } else {
+            if ($(this).val() == "") {
+                $(this).val("_");
+            }
+            letters[active_row][active_col] = $(this).val();
+        }
+    }
+
+    // Delete key - only allowed for multi-letter cells
+    else if ((e.which == 46) && (multiletters[active_row][active_col] != 1)) {
+        // do nothing, but allow the keypress
     }
 
     // Otherwise, ignore keypress
@@ -590,6 +660,30 @@ function handleHighlightColorClick() {
 
         $("#cursor-mode-highlight-icon").addClass("cell-highlight-" + selected_color);
 
+    }
+
+}
+
+
+function handleMultiIconClick() {
+
+    // If the cursor mode isn't HIGHLIGHT, switch to that mode
+    if (cursor_mode != "MULTI") {
+        $(".cursor-mode-button-selected").removeClass("cursor-mode-button-selected");
+        $("#cursor-button-multi").addClass("cursor-mode-button-selected");
+        cursor_mode = "MULTI";
+    } else {
+
+        // Loop over the range 2,3,4 with each click
+        selected_multi_num = ((selected_multi_num - 1) % 3) + 2;
+
+        // Update the tag for the highlight icon box
+        $(".multi-letter-box-example").removeClass("multi-letter-box-2");
+        $(".multi-letter-box-example").removeClass("multi-letter-box-3");
+        $(".multi-letter-box-example").removeClass("multi-letter-box-4");
+
+        $(".multi-letter-box-example").addClass("multi-letter-box-" + selected_multi_num);
+        $(".multi-letter-box-example").val("A".repeat(selected_multi_num));
     }
 
 }

@@ -67,6 +67,14 @@ input:focus {
     padding: 0 1px;
 }
 
+.puzzle-textbox-multi-label {
+	position: absolute;
+	font-size: 0.6rem;
+	background-color: white;
+    bottom: 0;
+    right: 0;
+    padding: 0 1px;
+}
 
 .toggle-button {
 	height: 30px;
@@ -223,6 +231,9 @@ input:focus {
 	height: 25px;
 	cursor: pointer;
 	border: 1px solid black;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
 #cursor-mode-black-icon {
@@ -299,4 +310,38 @@ input:focus {
 
 .active-cell {
 	background-color: rgb(220, 220, 255);
+}
+
+.multi-letter-box-wrapper {
+	height: 100%;
+	width: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.multi-letter-box {
+    overflow: hidden;
+    outline: none;
+    resize: none;
+    height: 25px;
+    width: 100%;
+}
+
+.multi-letter-box-2 {
+    font-size: 1.0rem;
+    letter-spacing: 2px;
+    line-height: 25px;
+}
+
+.multi-letter-box-3 {
+    font-size: 0.8rem;
+    line-height: 12px;
+    letter-spacing: 2px;
+}
+
+.multi-letter-box-4 {
+    font-size: 0.8rem;
+    line-height: 12px;
+    letter-spacing: 2px;
 }
