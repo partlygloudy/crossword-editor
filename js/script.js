@@ -31,6 +31,20 @@ $(document).ready(function(){
     // Load start menu buttons
     loadViewConfig();
 
+    // Add event handlers to toggle buttons
+    $(".toggle-button").click(handleMirrorButtonClick);
+
+    // Start with the mirror & flip mode active
+    handleMirrorButtonClick.call( $("#toggle-mirror-flip")[0] );
+
+    // Add event handlers to the cursor mode buttons
+    $(".cursor-mode-button").click(handleCursorModeClick);
+    $("#cursor-mode-highlight-icon").click(handleHighlightColorClick);
+    $("#cursor-mode-multi-icon").click(handleMultiIconClick);
+
+    // Event handler for adjusting puzzle dimensions
+    $('.input-rc').on('blur', refreshPuzzleDims);
+
 });
 
 
@@ -43,18 +57,6 @@ function loadViewConfig() {
     $("#puzzle-config").css("display", "flex");
     $("#puzzle-editor").css("display", "block");
     $("#cursor-mode-panel").css("display", "flex");
-
-    // Add event handlers to toggle buttons - activate "flip" mode by default
-    $(".toggle-button").click(handleMirrorButtonClick);
-    handleMirrorButtonClick.call( $("#toggle-mirror-flip")[0] );
-
-    // Add event handlers to the cursor mode buttons
-    $(".cursor-mode-button").click(handleCursorModeClick);
-    $("#cursor-mode-highlight-icon").click(handleHighlightColorClick);
-    $("#cursor-mode-multi-icon").click(handleMultiIconClick);
-
-    // Event handler for adjusting puzzle dimensions
-    $('.input-rc').on('blur', refreshPuzzleDims);
 
     // Set text of mode button to SOLVE and set the click handler
     $("#puzzle-config-finish-button").text("SOLVE");
