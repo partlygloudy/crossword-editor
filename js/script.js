@@ -42,7 +42,6 @@ function loadViewConfig() {
     // Show puzzle editor and config options
     $("#puzzle-config").css("display", "flex");
     $("#puzzle-editor").css("display", "block");
-    $("#puzzle-config-blurb").css("display", "flex");
     $("#cursor-mode-panel").css("display", "flex");
 
     // Add event handlers to toggle buttons - activate "flip" mode by default
@@ -57,8 +56,10 @@ function loadViewConfig() {
     // Event handler for adjusting puzzle dimensions
     $('.input-rc').on('blur', refreshPuzzleDims);
 
-    // Add event handler for ready button
+    // Set text of mode button to SOLVE and set the click handler
+    $("#puzzle-config-finish-button").text("SOLVE");
     $("#puzzle-config-finish-button").click(handleFinishConfigClicked);
+    $("#puzzle-config-blurb-text").text("Click 'Solve' when finished setting up the puzzle. You can return to setup mode later if you want to.");
 
     // Switch to edit mode
     mode = "EDIT";
@@ -74,8 +75,14 @@ function loadViewSolve() {
     $("#start-menu").css("display", "none");
     $("#puzzle-config").css("display", "none");
     $("#puzzle-editor").css("display", "block");
-    $("#puzzle-config-blurb").css("display", "none");
     $("#cursor-mode-panel").css("display", "none");
+
+    // Set text of mode button to SETUP and set the click handler
+    $("#puzzle-config-finish-button").text("SETUP");
+    $("#puzzle-config-finish-button").off("click");
+    $("#puzzle-config-finish-button").click(loadViewConfig);
+    $("#puzzle-config-blurb-text").text("Click 'Setup' if you want to change the layout, highlighting, circles, etc. Your progress will be saved");
+
 
     // Switch to "Solve" mode and re-render puzzle
     mode = "SOLVE";
@@ -442,6 +449,7 @@ function renderPuzzle() {
         $(".puzzle-textbox").on("input", handleAdvancing);
         $(".puzzle-textbox").keydown(handleKeyDown);
         $(".puzzle-textbox").click(handleCellClick);
+        $(".multi-letter-box").focus(handleMultiLetterBoxFocus);
 
     } else if (mode == "EDIT") {
 
@@ -571,11 +579,6 @@ function handleKeyDown(e) {
         }
     }
 
-    // Delete key - only allowed for multi-letter cells
-    else if ((e.which == 46) && (multiletters[active_row][active_col] != 1)) {
-        // do nothing, but allow the keypress
-    }
-
     // Otherwise, ignore keypress
     else {
         e.preventDefault();
@@ -686,4 +689,10 @@ function handleMultiIconClick() {
         $(".multi-letter-box-example").val("A".repeat(selected_multi_num));
     }
 
+}
+
+
+function handleMultiLetterBoxFocus() {
+    endPos = $(this).val().length;
+    $(this).prop("selectionStart", endPos);
 }
