@@ -58,7 +58,7 @@ function loadViewConfig() {
 
     // Set text of mode button to SOLVE and set the click handler
     $("#puzzle-config-finish-button").text("SOLVE");
-    $("#puzzle-config-finish-button").click(handleFinishConfigClicked);
+    $("#puzzle-config-finish-button").click(loadViewSolve);
     $("#puzzle-config-blurb-text").text("Click 'Solve' when finished setting up the puzzle. You can return to setup mode later if you want to.");
 
     // Switch to edit mode
@@ -91,27 +91,6 @@ function loadViewSolve() {
 }
 
 
-function handleFinishConfigClicked() {
-
-    // Adjust component visibility
-    loadViewSolve();
-
-    // Make "letters" array match the puzzle layout
-    letters = JSON.parse(JSON.stringify(puzzle));
-    for (r in letters) {
-        for (c in letters[r]) {
-            if (puzzle[r][c] == 1) {
-                letters[r][c] = "_";
-            }
-            else {
-                letters[r][c] = "-";
-            }
-        }
-    }
-
-}
-
-
 function applyLetters() {
 
     // Iterate over each cell in the puzzle
@@ -126,6 +105,7 @@ function applyLetters() {
         }
     }
 }
+
 
 function toggleNavDirection() {
     if (nav_direction == "HORIZONTAL") {
@@ -308,11 +288,13 @@ function refreshPuzzleDims() {
     // Add or remove rows if necessary
     while (puzzle.length < rows) {
         puzzle.push(new Array(cols).fill(1));
+        letters.push(new Array(cols).fill("-"));
         circles.push(new Array(cols).fill(0));
         highlights.push(new Array(cols).fill(""));
         multiletters.push(new Array(cols).fill(1));
     }
     puzzle.length = rows;
+    letters.length = rows
     circles.length = rows;
     highlights.length = rows;
     multiletters.length = rows;
@@ -321,11 +303,13 @@ function refreshPuzzleDims() {
     for (i=0; i<puzzle.length; i++) {
         if (puzzle[i].length < cols) {
             puzzle[i] = puzzle[i].concat(new Array(cols - puzzle[i].length).fill(1));
+            letters[i] = letters[i].concat(new Array(cols - puzzle[i].length).fill("-"));
             circles[i] = circles[i].concat(new Array(cols - circles[i].length).fill(0));
             highlights[i] = highlights[i].concat(new Array(cols - highlights[i].length).fill(""));
             multiletters[i] = multiletters[i].concat(new Array(cols - multiletters[i].length).fill(1));
         }
         puzzle[i].length = cols;
+        letters[i].length = cols;
         circles[i].length = cols;
         highlights[i].length = cols;
         multiletters[i].length = cols;
