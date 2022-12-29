@@ -249,6 +249,9 @@ input:focus {
 	left: 0;
 }
 
+.active-row-cell {
+	background-color: rgb(255, 255, 220);
+}
 
 .cell-highlight-R {
 	background-color: rgb(255, 150, 150);
@@ -305,10 +308,6 @@ input:focus {
 
 .cell-highlight-V:hover {
 	background-color: rgb(225, 95, 225);
-}
-
-.active-row-cell {
-	background-color: rgb(255, 255, 220);
 }
 
 .active-cell {
