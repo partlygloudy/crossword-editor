@@ -541,12 +541,15 @@ function handleKeyDown(e) {
             letters[active_row][active_col] = char
             advance = 1;
         } else {
-            if ($(this).val()[0] == "_") {
-                char =  String.fromCharCode(e.which);
-                $(this).val(char);
+            prev = letters[active_row][active_col];
+            char =  String.fromCharCode(e.which);
+            if (prev == "-") {
+                $(this).val("");
                 letters[active_row][active_col] = char
+            } else if (letters[active_row][active_col].length == multiletters[active_row][active_col]) {
+                // Cell full, ignore keypress
             } else {
-                letters[active_row][active_col] = $(this).val();
+                letters[active_row][active_col] = letters[active_row][active_col] + char
             }
         }
     }
@@ -555,13 +558,14 @@ function handleKeyDown(e) {
     else if (e.which == 8) {
         if (multiletters[active_row][active_col] == 1) {
             $(this).val("");
-            letters[active_row][active_col] = "_";
+            letters[active_row][active_col] = "-";
             advance = -1;  
         } else {
-            if ($(this).val() == "") {
-                $(this).val("_");
+            if (letters[active_row][active_col].length == 1) {
+                letters[active_row][active_col] = "-";
+            } else {
+                letters[active_row][active_col] = letters[active_row][active_col].slice(0, -1);                
             }
-            letters[active_row][active_col] = $(this).val();
         }
     }
 
