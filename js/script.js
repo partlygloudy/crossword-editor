@@ -26,8 +26,10 @@ multiletters = []
 selected_multi_num = 2;
 
 // Firebase data
+let firebaseUser;
 let puzzleId;
 let puzzleRef;
+let syncActive = false;
 
 
 $(document).ready(function(){
@@ -52,6 +54,10 @@ $(document).ready(function(){
     // Event handlers for multiplayer option checkboxes
     $("#checkbox-make-public").on("change", handleMakePublicToggle);
     $("#checkbox-join-game").on("change", handleJoinGameToggle);
+
+    // Event handler for publish and join buttons
+    $("#publish-join-code-button").click(handleSetJoinCodeClick);
+    $("#join-game-button").click(handleJoinGameClick);
 
     // Connect to firebase
     initFirebase();
@@ -451,6 +457,9 @@ function renderPuzzle() {
         $(".puzzle-cell").css("cursor", "pointer");
 
     }
+
+    // Puzzle state has changed, publish changes to firebase
+    publishStateToFirebase();
 }
 
 function handleCellClick() {
@@ -502,6 +511,7 @@ function handleAdvancing() {
 function handleKeyDown(e) {
 
     advance = 0;
+    letterChange = false;
 
     // Left arrow
     if (e.which == 37) {
@@ -542,6 +552,7 @@ function handleKeyDown(e) {
 
     // Alphabetical character
     else if (((e.which >= 65) && (e.which <= 90)) || ((e.which >= 97) && (e.which <= 122))) {
+        letterChange = true;
         if (multiletters[active_row][active_col] == 1) {
             $(this).val("");
             char = String.fromCharCode(e.which);
@@ -553,8 +564,10 @@ function handleKeyDown(e) {
             if (prev == "-") {
                 $(this).val("");
                 letters[active_row][active_col] = char
+                
             } else if (letters[active_row][active_col].length == multiletters[active_row][active_col]) {
                 // Cell full, ignore keypress
+                letterChange = false;
             } else {
                 letters[active_row][active_col] = letters[active_row][active_col] + char
             }
@@ -563,6 +576,12 @@ function handleKeyDown(e) {
 
     // Backspace
     else if (e.which == 8) {
+        // Track if the backspace press actually does anything
+        if ((letters[active_row][active_col]) != "-") {
+            letterChange = true;
+        }
+
+        // Handle multiletter vs. single letter
         if (multiletters[active_row][active_col] == 1) {
             $(this).val("");
             letters[active_row][active_col] = "-";
@@ -583,6 +602,12 @@ function handleKeyDown(e) {
 
     // Refresh active cell
     highlightActiveCell();
+
+    // If any letters changed, publish changes
+    if (letterChange) {
+        publishStateToFirebase();
+    }
+
 }
 
 function highlightActiveCell() {
@@ -711,31 +736,12 @@ function initFirebase() {
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
 
-    // Listen for authentication
+    // Store user info while authenticated
     firebase.auth().onAuthStateChanged((user) => {
-        
         if (user) {
-
-            // Initialize properties of the puzzle
-            puzzleId = user.uid;
-            puzzleRef = firebase.database().ref(`puzzles/${puzzleId}`);
-            puzzleRef.set({
-                ownerId : user.uid,
-                rows: rows,
-                cols: cols,
-                grid: puzzle,
-                letters: letters,
-                circles: circles,
-                highlights: highlights,
-                multiletters: multiletters
-            });
-
-            // Configure puzzle to dissappear from database when the 
-            // creator disconnects
-            puzzleRef.onDisconnect().remove();
-            
+            firebaseUser = user;            
         } else {
-            //
+            firebaseUser = none;
         }
     })
 
@@ -759,6 +765,11 @@ function handleMakePublicToggle() {
     // If now NOT checked, hide menu for sharing game
     else {
         $("#set-join-code-elements").css("display", "none");
+        
+        // Toggle sync off and remove the puzzle from firebase
+        syncActive = false;
+        puzzleRef.remove();
+
     }
 
 }
@@ -784,10 +795,53 @@ function handleJoinGameToggle() {
 
 
 function handleSetJoinCodeClick() {
+
+    // Make sure user is authenticated
+    if (firebaseUser) {
+
+        // Get join code from the input box
+        let joinCode = $("#input-set-join-code").val();
+
+        // Create a data object for the puzzle in firebase
+        puzzleRef = firebase.database().ref(`puzzles/${joinCode}`);
+
+        // Toggle sync on and publish the current state of the puzzle
+        syncActive = true;
+        publishStateToFirebase();
+
+        // Configure puzzle to dissappear from database when the 
+        // creator disconnects
+        puzzleRef.onDisconnect().remove();
+        
+    } else {
+        console.log("Error, failed to authenticate with firebase, no user active")
+    }
     
 }
 
 
 function handleJoinGameClick() {
     
+}
+
+
+function publishStateToFirebase() {
+
+    if (syncActive) {
+
+        puzzleRef.set({
+            ownerId : firebaseUser.uid,
+            rows: rows,
+            cols: cols,
+            grid: puzzle,
+            letters: letters,
+            circles: circles,
+            highlights: highlights,
+            multiletters: multiletters
+        });
+
+        console.log("updating puzzle state");
+
+    }
+
 }
