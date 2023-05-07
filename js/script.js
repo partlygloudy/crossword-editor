@@ -25,10 +25,14 @@ selected_color = "R";
 multiletters = []
 selected_multi_num = 2;
 
+// Firebase data
+let puzzleId;
+let puzzleRef;
+
 
 $(document).ready(function(){
 
-    // Load start menu buttons
+    // Load config options
     loadViewConfig();
 
     // Add event handlers to toggle buttons
@@ -45,13 +49,17 @@ $(document).ready(function(){
     // Event handler for adjusting puzzle dimensions
     $('.input-rc').on('blur', refreshPuzzleDims);
 
+    // Event handlers for multiplayer option checkboxes
+    $("#checkbox-make-public").on("change", handleMakePublicToggle);
+    $("#checkbox-join-game").on("change", handleJoinGameToggle);
+
+    // Connect to firebase
+    initFirebase();
+
 });
 
 
 function loadViewConfig() {
-
-    // Hide start menu
-    $("#start-menu").css("display", "none");
 
     // Show puzzle editor and config options
     $("#puzzle-config").css("display", "flex");
@@ -74,7 +82,6 @@ function loadViewConfig() {
 function loadViewSolve() {
 
     // Adjust visibility of components
-    $("#start-menu").css("display", "none");
     $("#puzzle-config").css("display", "none");
     $("#puzzle-editor").css("display", "block");
     $("#cursor-mode-panel").css("display", "none");
@@ -685,4 +692,102 @@ function handleMultiIconClick() {
 function handleMultiLetterBoxFocus() {
     endPos = $(this).val().length;
     $(this).prop("selectionStart", endPos);
+}
+
+
+function initFirebase() {
+            
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyCs50S4eVYCpY2lTtElUTunBGo-Rt47tLg",
+        authDomain: "crossword-editor.firebaseapp.com",
+        databaseURL: "https://crossword-editor-default-rtdb.firebaseio.com",
+        projectId: "crossword-editor",
+        storageBucket: "crossword-editor.appspot.com",
+        messagingSenderId: "805264714060",
+        appId: "1:805264714060:web:cdfdc0ddc389c0d21b07e9"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // Listen for authentication
+    firebase.auth().onAuthStateChanged((user) => {
+        
+        if (user) {
+
+            // Initialize properties of the puzzle
+            puzzleId = user.uid;
+            puzzleRef = firebase.database().ref(`puzzles/${puzzleId}`);
+            puzzleRef.set({
+                ownerId : user.uid,
+                rows: rows,
+                cols: cols,
+                grid: puzzle,
+                letters: letters,
+                circles: circles,
+                highlights: highlights,
+                multiletters: multiletters
+            });
+
+            // Configure puzzle to dissappear from database when the 
+            // creator disconnects
+            puzzleRef.onDisconnect().remove();
+            
+        } else {
+            //
+        }
+    })
+
+    // Log in anonymously
+    firebase.auth().signInAnonymously();
+
+}
+
+
+function handleMakePublicToggle() {
+    
+    var checked = $(this).prop("checked");
+
+    // If now checked, hide join game menu (if visible) and show menu for sharing game
+    if (checked) {
+        $("#set-join-code-elements").css("display", "flex");
+        $("#join-game-elements").css("display", "none");
+        $("#checkbox-join-game").prop("checked", false);
+    }
+
+    // If now NOT checked, hide menu for sharing game
+    else {
+        $("#set-join-code-elements").css("display", "none");
+    }
+
+}
+
+
+function handleJoinGameToggle() {
+
+    var checked = $(this).prop("checked");
+
+    // If now checked, hide join game menu (if visible) and show menu for sharing game
+    if (checked) {
+        $("#join-game-elements").css("display", "flex");
+        $("#set-join-code-elements").css("display", "none");
+        $("#checkbox-make-public").prop("checked", false);
+    }
+
+    // If now NOT checked, hide menu for sharing game
+    else {
+        $("#join-game-elements").css("display", "none");
+    }
+
+}
+
+
+function handleSetJoinCodeClick() {
+    
+}
+
+
+function handleJoinGameClick() {
+    
 }

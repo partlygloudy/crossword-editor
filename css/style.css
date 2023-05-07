@@ -347,3 +347,78 @@ input:focus {
     line-height: 12px;
     letter-spacing: 2px;
 }
+
+#multiplayer-config-panel {
+	position: fixed;
+	bottom: 20px;
+	left: 20px;
+	display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#multiplayer-checkbox-elements {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background: rgb(245,245,245);
+    padding: 8px;
+    border-radius: 5px;
+}
+
+.multiplayer-checkbox-group {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 25px;
+}
+
+#checkbox-make-public {
+	margin-right: 10px;
+}
+
+.multiplayer-panel-label {
+	font-size: 0.7rem;
+}
+
+.multipalyer-panel-element-group {
+	display: none;
+    align-items: center;
+    justify-content: center;
+	margin-left: 25px;
+	background: rgb(245,245,245);
+    padding: 8px;
+    border-radius: 5px;
+}
+
+.multiplayer-panel-input {
+	margin-left: 10px;
+	width: 100px;
+    height: 25px;
+    text-align: center;
+    font-size: 0.7rem;
+	font-family: monospace;
+	color: darkgreen;
+    box-shadow: 0 0 5px 0 rgba(0,0,0,.15);
+    border: none;
+}
+
+.multiplayer-panel-button {
+	width: 75px;
+    height: 27px;
+	margin-left: 10px;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: rgb(100, 100, 100);
+	background-color: white;
+    cursor: pointer;
+    box-shadow: 0 0 5px 0 rgba(0,0,0,.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.multiplayer-panel-button:hover {
+    background-color: rgb(240,240,255);
+}

@@ -10,10 +10,14 @@
     <!-- CSS -->
 	<link rel="stylesheet" type="text/css" href="css/style.css">
 
+    <!-- Scripts for connecting to firebase and syncing multiplayer games -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
     <!-- JQuery and javascript for card highlighting -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="js/script.js"></script>
-
 
 </head>
 
@@ -89,6 +93,41 @@
 
         <p id="puzzle-config-blurb-text"></p>
         <div id="puzzle-config-finish-button">Ready</div>
+
+    </div>
+
+    <!-- Panel for publishing puzzle or joining another puzzle -->
+    <div id="multiplayer-config-panel">
+        
+        <div id="multiplayer-checkbox-elements">
+
+            <!-- Checkbox to enable/disable public sharing of puzzle -->
+            <div class="multiplayer-checkbox-group">
+                <label for="checkbox-make-public" class="multiplayer-panel-label">MAKE PUBLIC</label>
+                <input type="checkbox" id="checkbox-make-public" />
+            </div>
+
+            <!-- Checkbox to expand elements for joining a game -->
+            <div class="multiplayer-checkbox-group">
+                <label for="checkbox-join-game" class="multiplayer-panel-label">JOIN A GAME</label>
+                <input type="checkbox" id="checkbox-join-game" />
+            </div>
+
+        </div>
+
+        <!-- Input for setting public id for the puzzle -->
+        <div class="multipalyer-panel-element-group" id="set-join-code-elements">
+            <label for="input-set-join-code" class="multiplayer-panel-label">JOIN CODE:</label>
+            <input type="text" class="multiplayer-panel-input" id="input-set-join-code" />
+            <div class="multiplayer-panel-button" id="publish-join-code-button">PUBLISH</div>
+        </div>
+
+        <!-- Input for joining a public game -->
+        <div class="multipalyer-panel-element-group" id="join-game-elements">
+            <label for="input-join-game" class="multiplayer-panel-label">JOIN CODE:</label>
+            <input type="text" class="multiplayer-panel-input" id="input-use-join-code" />
+            <div class="multiplayer-panel-button" id="join-game-button">JOIN</div>
+        </div>
 
     </div>
 
