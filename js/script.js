@@ -691,7 +691,6 @@ function handleHighlightColorClick() {
         $("#cursor-mode-highlight-icon").removeClass("cell-highlight-B");
         $("#cursor-mode-highlight-icon").removeClass("cell-highlight-I");
         $("#cursor-mode-highlight-icon").removeClass("cell-highlight-V");
-
         $("#cursor-mode-highlight-icon").addClass("cell-highlight-" + selected_color);
 
     }
@@ -900,8 +899,6 @@ async function publishStateToFirebase() {
 
         let result = false;
 
-        console.log("publishing state")
-
         await puzzleRef.set({
             lastChangedBy : firebaseUser.uid,
             rows: rows,
@@ -941,8 +938,6 @@ function handleSyncedStateChange(snapshot) {
 
     // Only care about the change if a different client made it
     if (updatedPuzzle.lastChangedBy != firebaseUser.uid) {
-
-        console.log("syncing state change")
         
         // Update local state
         rows = updatedPuzzle.rows;
@@ -954,8 +949,6 @@ function handleSyncedStateChange(snapshot) {
         multiletters = updatedPuzzle.multiletters;
         renderPuzzle();
 
-    } else {
-        console.log("not re-rendering because change was made by us")
     }
 
 }
