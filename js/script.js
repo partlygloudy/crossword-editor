@@ -25,10 +25,16 @@ selected_color = "R";
 multiletters = []
 selected_multi_num = 2;
 
+// Firebase data
+let firebaseUser;
+let puzzleId;
+let puzzleRef;
+let syncActive = false;
+let gameOwner = false;
 
 $(document).ready(function(){
 
-    // Load start menu buttons
+    // Load config options
     loadViewConfig();
 
     // Add event handlers to toggle buttons
@@ -45,13 +51,21 @@ $(document).ready(function(){
     // Event handler for adjusting puzzle dimensions
     $('.input-rc').on('blur', refreshPuzzleDims);
 
+    // Event handlers for multiplayer option checkboxes
+    $("#checkbox-make-public").on("change", handleMakePublicToggle);
+    $("#checkbox-join-game").on("change", handleJoinGameToggle);
+
+    // Event handler for publish and join buttons
+    $("#publish-join-code-button").click(handleSetJoinCodeClick);
+    $("#join-game-button").click(handleJoinGameClick);
+
+    // Connect to firebase
+    initFirebase();
+
 });
 
 
 function loadViewConfig() {
-
-    // Hide start menu
-    $("#start-menu").css("display", "none");
 
     // Show puzzle editor and config options
     $("#puzzle-config").css("display", "flex");
@@ -74,7 +88,6 @@ function loadViewConfig() {
 function loadViewSolve() {
 
     // Adjust visibility of components
-    $("#start-menu").css("display", "none");
     $("#puzzle-config").css("display", "none");
     $("#puzzle-editor").css("display", "block");
     $("#cursor-mode-panel").css("display", "none");
@@ -182,6 +195,9 @@ function handleEditCell() {
 
     // Redraw puzzle with changes
     renderPuzzle();
+    
+    // Puzzle state has changed, publish changes to firebase
+    publishStateToFirebase();
 
 }
 
@@ -268,6 +284,9 @@ function handleMirrorButtonClick() {
     // Render the updated puzzle
     renderPuzzle();
 
+    // Puzzle state has changed, publish changes to firebase
+    publishStateToFirebase();
+
 }
 
 
@@ -320,9 +339,14 @@ function refreshPuzzleDims() {
     // Render the puzzle with the new dimensions
     renderPuzzle();
 
+    // Puzzle state has changed, publish changes to firebase
+    publishStateToFirebase();
+
 }
 
 function renderPuzzle() {
+
+    console.log("render puzzle called")
 
     // Clear the puzzle so we can re-draw
     $("#puzzle-editor").empty();
@@ -444,6 +468,7 @@ function renderPuzzle() {
         $(".puzzle-cell").css("cursor", "pointer");
 
     }
+
 }
 
 function handleCellClick() {
@@ -495,6 +520,7 @@ function handleAdvancing() {
 function handleKeyDown(e) {
 
     advance = 0;
+    letterChange = false;
 
     // Left arrow
     if (e.which == 37) {
@@ -535,6 +561,7 @@ function handleKeyDown(e) {
 
     // Alphabetical character
     else if (((e.which >= 65) && (e.which <= 90)) || ((e.which >= 97) && (e.which <= 122))) {
+        letterChange = true;
         if (multiletters[active_row][active_col] == 1) {
             $(this).val("");
             char = String.fromCharCode(e.which);
@@ -546,8 +573,10 @@ function handleKeyDown(e) {
             if (prev == "-") {
                 $(this).val("");
                 letters[active_row][active_col] = char
+                
             } else if (letters[active_row][active_col].length == multiletters[active_row][active_col]) {
                 // Cell full, ignore keypress
+                letterChange = false;
             } else {
                 letters[active_row][active_col] = letters[active_row][active_col] + char
             }
@@ -556,6 +585,12 @@ function handleKeyDown(e) {
 
     // Backspace
     else if (e.which == 8) {
+        // Track if the backspace press actually does anything
+        if ((letters[active_row][active_col]) != "-") {
+            letterChange = true;
+        }
+
+        // Handle multiletter vs. single letter
         if (multiletters[active_row][active_col] == 1) {
             $(this).val("");
             letters[active_row][active_col] = "-";
@@ -576,6 +611,12 @@ function handleKeyDown(e) {
 
     // Refresh active cell
     highlightActiveCell();
+
+    // If any letters changed, publish changes
+    if (letterChange) {
+        publishStateToFirebase();
+    }
+
 }
 
 function highlightActiveCell() {
@@ -650,7 +691,6 @@ function handleHighlightColorClick() {
         $("#cursor-mode-highlight-icon").removeClass("cell-highlight-B");
         $("#cursor-mode-highlight-icon").removeClass("cell-highlight-I");
         $("#cursor-mode-highlight-icon").removeClass("cell-highlight-V");
-
         $("#cursor-mode-highlight-icon").addClass("cell-highlight-" + selected_color);
 
     }
@@ -685,4 +725,230 @@ function handleMultiIconClick() {
 function handleMultiLetterBoxFocus() {
     endPos = $(this).val().length;
     $(this).prop("selectionStart", endPos);
+}
+
+
+function initFirebase() {
+            
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyCs50S4eVYCpY2lTtElUTunBGo-Rt47tLg",
+        authDomain: "crossword-editor.firebaseapp.com",
+        databaseURL: "https://crossword-editor-default-rtdb.firebaseio.com",
+        projectId: "crossword-editor",
+        storageBucket: "crossword-editor.appspot.com",
+        messagingSenderId: "805264714060",
+        appId: "1:805264714060:web:cdfdc0ddc389c0d21b07e9"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // Store user info while authenticated
+    firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+            firebaseUser = user;            
+        } else {
+            firebaseUser = none;
+        }
+    })
+
+    // Log in anonymously
+    firebase.auth().signInAnonymously();
+
+}
+
+
+function handleMakePublicToggle() {
+    
+    var checked = $(this).prop("checked");
+
+    // If now checked, hide join game menu (if visible) and show menu for sharing game
+    if (checked) {
+        $(".multipalyer-panel-element-group").css("display", "none");
+        $("#set-join-code-elements").css("display", "flex");
+        $("#checkbox-join-game").prop("checked", false);
+    }
+
+    // If now NOT checked, hide menu for sharing game
+    else {
+        $(".multipalyer-panel-element-group").css("display", "none");
+        
+        // Toggle sync off if it was active and remove the puzzle from firebase
+        if (syncActive) {
+            syncActive = false;
+            stopListeningForUpdates();
+            if (gameOwner) {
+                puzzleRef.remove();
+                gameOwner = false;
+            }
+        }
+
+    }
+
+}
+
+
+function handleJoinGameToggle() {
+
+    var checked = $(this).prop("checked");
+
+    // If now checked, hide join game menu (if visible) and show menu for sharing game
+    if (checked) {
+
+        $(".multipalyer-panel-element-group").css("display", "none");
+        $("#join-game-elements").css("display", "flex");
+        $("#checkbox-make-public").prop("checked", false);
+
+    }
+
+    // If now NOT checked, hide menu for sharing game
+    else {
+        $(".multipalyer-panel-element-group").css("display", "none");
+    }
+
+    // Toggle sync off if it was active and remove the puzzle from firebase
+    if (syncActive) {
+        syncActive = false;
+        stopListeningForUpdates();
+        if (gameOwner) {
+            puzzleRef.remove();
+            gameOwner = false;
+        }
+    }
+
+}
+
+
+async function handleSetJoinCodeClick() {
+
+    // Make sure user is authenticated
+    if (firebaseUser) {
+
+        // Get join code from the input box
+        let joinCode = $("#input-set-join-code").val();
+
+        // Create a data object for the puzzle in firebase
+        puzzleRef = firebase.database().ref('puzzles/' + joinCode);
+
+        // Toggle sync on and publish the current state of the puzzle
+        syncActive = true;
+        gameOwner = true;
+        let success = await publishStateToFirebase();
+
+        if (success) {
+            $("#set-join-code-elements").css("display", "none");
+            $("#publishing-game-text").css("display", "flex");
+            $("#public-join-code-text").text(joinCode);
+            startListeningForUpdates();
+        }
+
+        // Configure puzzle to dissappear from database when the 
+        // creator disconnects
+        puzzleRef.onDisconnect().remove();
+        
+    } else {
+        console.log("Error, failed to authenticate with firebase, no user active")
+    }
+    
+}
+
+
+async function handleJoinGameClick() {
+
+    // Make sure user is authenticated
+    if (firebaseUser) {
+
+        // Get join code from the input box
+        let joinCode = $("#input-use-join-code").val();
+
+        // Create a data object for the puzzle in firebase
+        let allPuzzlesRef = firebase.database().ref('puzzles');
+
+        // Check if a puzzle exists with the specified join code
+        await allPuzzlesRef.child(joinCode).once('value').then(function(snapshot) {
+                        
+            if (snapshot.exists()) {
+
+                // Show text indicating we've joined a game
+                $("#join-game-elements").css("display", "none");
+                $("#publishing-game-text").css("display", "flex");
+                $("#public-join-code-text").text(joinCode);
+
+                // Store reference to puzzle data and turn on sync
+                puzzleRef = firebase.database().ref('puzzles/' + joinCode);
+                syncActive = true;
+                startListeningForUpdates();
+
+            } else {
+                console.log("No puzzle with the specified join code");
+            }
+                        
+        });
+        
+    } else {
+        console.log("Error, failed to authenticate with firebase, no user active")
+    }
+    
+}
+
+
+async function publishStateToFirebase() {
+
+    if (syncActive) {
+
+        let result = false;
+
+        await puzzleRef.set({
+            lastChangedBy : firebaseUser.uid,
+            rows: rows,
+            cols: cols,
+            puzzle: puzzle,
+            letters: letters,
+            circles: circles,
+            highlights: highlights,
+            multiletters: multiletters
+        }).then(function() {
+            result = true;
+        });
+
+        return result;
+
+    } else {
+        return false;
+    }
+
+}
+
+
+function startListeningForUpdates() {
+    puzzleRef.on("value", handleSyncedStateChange);
+}
+
+
+function stopListeningForUpdates() {
+    puzzleRef.off("value", handleSyncedStateChange);
+}
+
+
+function handleSyncedStateChange(snapshot) {
+
+    // Get the updated puzzle state
+    let updatedPuzzle = snapshot.val();
+
+    // Only care about the change if a different client made it
+    if (updatedPuzzle.lastChangedBy != firebaseUser.uid) {
+        
+        // Update local state
+        rows = updatedPuzzle.rows;
+        cols = updatedPuzzle.cols;
+        puzzle = updatedPuzzle.puzzle;
+        letters = updatedPuzzle.letters;
+        circles = updatedPuzzle.circles;
+        highlights = updatedPuzzle.highlights;
+        multiletters = updatedPuzzle.multiletters;
+        renderPuzzle();
+
+    }
+
 }
