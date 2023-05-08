@@ -422,3 +422,13 @@ input:focus {
 .multiplayer-panel-button:hover {
     background-color: rgb(240,240,255);
 }
+
+#publishing-game-text {
+	font-size: 0.7rem;
+	font-family: monospace;
+}
+
+#public-join-code-text {
+	font-style: italic;
+	color: darkgreen;
+}

@@ -30,7 +30,7 @@ let firebaseUser;
 let puzzleId;
 let puzzleRef;
 let syncActive = false;
-
+let gameOwner = false;
 
 $(document).ready(function(){
 
@@ -195,6 +195,9 @@ function handleEditCell() {
 
     // Redraw puzzle with changes
     renderPuzzle();
+    
+    // Puzzle state has changed, publish changes to firebase
+    publishStateToFirebase();
 
 }
 
@@ -281,6 +284,9 @@ function handleMirrorButtonClick() {
     // Render the updated puzzle
     renderPuzzle();
 
+    // Puzzle state has changed, publish changes to firebase
+    publishStateToFirebase();
+
 }
 
 
@@ -333,9 +339,14 @@ function refreshPuzzleDims() {
     // Render the puzzle with the new dimensions
     renderPuzzle();
 
+    // Puzzle state has changed, publish changes to firebase
+    publishStateToFirebase();
+
 }
 
 function renderPuzzle() {
+
+    console.log("render puzzle called")
 
     // Clear the puzzle so we can re-draw
     $("#puzzle-editor").empty();
@@ -458,8 +469,6 @@ function renderPuzzle() {
 
     }
 
-    // Puzzle state has changed, publish changes to firebase
-    publishStateToFirebase();
 }
 
 function handleCellClick() {
@@ -757,18 +766,24 @@ function handleMakePublicToggle() {
 
     // If now checked, hide join game menu (if visible) and show menu for sharing game
     if (checked) {
+        $(".multipalyer-panel-element-group").css("display", "none");
         $("#set-join-code-elements").css("display", "flex");
-        $("#join-game-elements").css("display", "none");
         $("#checkbox-join-game").prop("checked", false);
     }
 
     // If now NOT checked, hide menu for sharing game
     else {
-        $("#set-join-code-elements").css("display", "none");
+        $(".multipalyer-panel-element-group").css("display", "none");
         
-        // Toggle sync off and remove the puzzle from firebase
-        syncActive = false;
-        puzzleRef.remove();
+        // Toggle sync off if it was active and remove the puzzle from firebase
+        if (syncActive) {
+            syncActive = false;
+            stopListeningForUpdates();
+            if (gameOwner) {
+                puzzleRef.remove();
+                gameOwner = false;
+            }
+        }
 
     }
 
@@ -781,20 +796,32 @@ function handleJoinGameToggle() {
 
     // If now checked, hide join game menu (if visible) and show menu for sharing game
     if (checked) {
+
+        $(".multipalyer-panel-element-group").css("display", "none");
         $("#join-game-elements").css("display", "flex");
-        $("#set-join-code-elements").css("display", "none");
         $("#checkbox-make-public").prop("checked", false);
+
     }
 
     // If now NOT checked, hide menu for sharing game
     else {
-        $("#join-game-elements").css("display", "none");
+        $(".multipalyer-panel-element-group").css("display", "none");
+    }
+
+    // Toggle sync off if it was active and remove the puzzle from firebase
+    if (syncActive) {
+        syncActive = false;
+        stopListeningForUpdates();
+        if (gameOwner) {
+            puzzleRef.remove();
+            gameOwner = false;
+        }
     }
 
 }
 
 
-function handleSetJoinCodeClick() {
+async function handleSetJoinCodeClick() {
 
     // Make sure user is authenticated
     if (firebaseUser) {
@@ -803,11 +830,19 @@ function handleSetJoinCodeClick() {
         let joinCode = $("#input-set-join-code").val();
 
         // Create a data object for the puzzle in firebase
-        puzzleRef = firebase.database().ref(`puzzles/${joinCode}`);
+        puzzleRef = firebase.database().ref('puzzles/' + joinCode);
 
         // Toggle sync on and publish the current state of the puzzle
         syncActive = true;
-        publishStateToFirebase();
+        gameOwner = true;
+        let success = await publishStateToFirebase();
+
+        if (success) {
+            $("#set-join-code-elements").css("display", "none");
+            $("#publishing-game-text").css("display", "flex");
+            $("#public-join-code-text").text(joinCode);
+            startListeningForUpdates();
+        }
 
         // Configure puzzle to dissappear from database when the 
         // creator disconnects
@@ -820,28 +855,107 @@ function handleSetJoinCodeClick() {
 }
 
 
-function handleJoinGameClick() {
+async function handleJoinGameClick() {
+
+    // Make sure user is authenticated
+    if (firebaseUser) {
+
+        // Get join code from the input box
+        let joinCode = $("#input-use-join-code").val();
+
+        // Create a data object for the puzzle in firebase
+        let allPuzzlesRef = firebase.database().ref('puzzles');
+
+        // Check if a puzzle exists with the specified join code
+        await allPuzzlesRef.child(joinCode).once('value').then(function(snapshot) {
+                        
+            if (snapshot.exists()) {
+
+                // Show text indicating we've joined a game
+                $("#join-game-elements").css("display", "none");
+                $("#publishing-game-text").css("display", "flex");
+                $("#public-join-code-text").text(joinCode);
+
+                // Store reference to puzzle data and turn on sync
+                puzzleRef = firebase.database().ref('puzzles/' + joinCode);
+                syncActive = true;
+                startListeningForUpdates();
+
+            } else {
+                console.log("No puzzle with the specified join code");
+            }
+                        
+        });
+        
+    } else {
+        console.log("Error, failed to authenticate with firebase, no user active")
+    }
     
 }
 
 
-function publishStateToFirebase() {
+async function publishStateToFirebase() {
 
     if (syncActive) {
 
-        puzzleRef.set({
-            ownerId : firebaseUser.uid,
+        let result = false;
+
+        console.log("publishing state")
+
+        await puzzleRef.set({
+            lastChangedBy : firebaseUser.uid,
             rows: rows,
             cols: cols,
-            grid: puzzle,
+            puzzle: puzzle,
             letters: letters,
             circles: circles,
             highlights: highlights,
             multiletters: multiletters
+        }).then(function() {
+            result = true;
         });
 
-        console.log("updating puzzle state");
+        return result;
 
+    } else {
+        return false;
+    }
+
+}
+
+
+function startListeningForUpdates() {
+    puzzleRef.on("value", handleSyncedStateChange);
+}
+
+
+function stopListeningForUpdates() {
+    puzzleRef.off("value", handleSyncedStateChange);
+}
+
+
+function handleSyncedStateChange(snapshot) {
+
+    // Get the updated puzzle state
+    let updatedPuzzle = snapshot.val();
+
+    // Only care about the change if a different client made it
+    if (updatedPuzzle.lastChangedBy != firebaseUser.uid) {
+
+        console.log("syncing state change")
+        
+        // Update local state
+        rows = updatedPuzzle.rows;
+        cols = updatedPuzzle.cols;
+        puzzle = updatedPuzzle.puzzle;
+        letters = updatedPuzzle.letters;
+        circles = updatedPuzzle.circles;
+        highlights = updatedPuzzle.highlights;
+        multiletters = updatedPuzzle.multiletters;
+        renderPuzzle();
+
+    } else {
+        console.log("not re-rendering because change was made by us")
     }
 
 }
