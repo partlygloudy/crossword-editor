@@ -31,6 +31,7 @@ let puzzleId;
 let puzzleRef;
 let syncActive = false;
 let gameOwner = false;
+let tabId = Math.floor(Math.random() * (9999999 - 1000000) + 1000000);
 
 $(document).ready(function(){
 
@@ -345,8 +346,6 @@ function refreshPuzzleDims() {
 }
 
 function renderPuzzle() {
-
-    console.log("render puzzle called")
 
     // Clear the puzzle so we can re-draw
     $("#puzzle-editor").empty();
@@ -900,7 +899,7 @@ async function publishStateToFirebase() {
         let result = false;
 
         await puzzleRef.set({
-            lastChangedBy : firebaseUser.uid,
+            lastChangedBy : firebaseUser.uid + "-" + tabId,
             rows: rows,
             cols: cols,
             puzzle: puzzle,
@@ -937,7 +936,7 @@ function handleSyncedStateChange(snapshot) {
     let updatedPuzzle = snapshot.val();
 
     // Only care about the change if a different client made it
-    if (updatedPuzzle.lastChangedBy != firebaseUser.uid) {
+    if (updatedPuzzle.lastChangedBy != firebaseUser.uid + "-" + tabId) {
         
         // Update local state
         rows = updatedPuzzle.rows;
