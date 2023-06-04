@@ -1119,7 +1119,17 @@ async function handlePfpSubmitClick() {
     // If response was successful, get update the puzzle config from the response data
     const resJson = await res.json();
     if (res.ok) {
-        console.log(resJson);
+
+        // Refresh puzzle dimensions to match computed values
+        $("#input-rows").val(resJson.rows);
+        $("#input-cols").val(resJson.cols);
+        refreshPuzzleDims();
+
+        // Apply black/white cells to match computed grid
+        puzzle = resJson.puzzle;
+        renderPuzzle();
+        publishStateToFirebase();
+        
     } else {
         console.log(resJson)
     }
