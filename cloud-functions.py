@@ -5,6 +5,7 @@ import numpy as np
 import json
 from flask import *
 
+from matplotlib import pyplot as plt
 
 # Initialize flask app
 app = Flask(__name__)
@@ -35,8 +36,16 @@ def crossword_from_img(pil_image, rendered_height, corner_coords):
     transform_mat = cv2.getPerspectiveTransform(corner_src, corner_dst)
     img_unskewed = cv2.warpPerspective(img, transform_mat, (out_width, out_height))
 
-    # Convert image to black and white
+    # Convert image grayscale
     img_gray = cv2.cvtColor(img_unskewed, cv2.COLOR_BGR2GRAY)
+
+    # Scale the values so the min is 0 and the max is 255 (this should help with poor
+    # lighting causing extra cells to be classified as black)
+    min_val, max_val = np.min(img_gray), np.max(img_gray)
+    img_gray = (img_gray - min_val) * (255 / (max_val - min_val))
+    img_gray = np.clip(img_gray, 0, 255)
+
+    # Now apply threshold to convert to black and white
     ret, img_bw = cv2.threshold(img_gray, 150, 255, cv2.THRESH_BINARY)
 
     # Reduce noise (lines, numbers) using dilation and erosion
