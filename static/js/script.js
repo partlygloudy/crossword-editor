@@ -1090,7 +1090,7 @@ function handlePfpClearClick() {
 }
 
 
-function handlePfpSubmitClick() {
+async function handlePfpSubmitClick() {
 
     // Get the data from the image input
     const imageFile = $("#pfp-img-select")[0].files[0]; 
@@ -1103,24 +1103,26 @@ function handlePfpSubmitClick() {
 
     // Add info about the image size and corner coordinates to the form
     let imageInfo = {
-        "renderedWidth": $("pfp-img").height(),
-        "renderedHeight": $('#pfp-img').width(),
+        "renderedWidth": $("#pfp-img").width(),
+        "renderedHeight": $('#pfp-img').height(),
         "cornerCoords": cornerCoords
     }
     formData.append('data', JSON.stringify(imageInfo)); 
 
     // Send POST request to server
-    let url = "http://127.0.0.1:5000";
     let endpoint = "/crossword-from-image"
-    fetch(url + endpoint, { 
+    const res = await fetch(endpoint, { 
         method: 'POST',
         body: formData
-    }).then(function(response) {   // Response passed to function when Promise from fetch resolves
-        response.json();
-    }).then(function(data) {       // Data from JSON passed to function with Promise from conversion resolves
-        console.log(data["success"]);
-    }).catch(function(error) {     // Error passed to function if one of the Promises fails to resolve
-        console.error(error);
     });
+    
+    // If response was successful, get update the puzzle config from the response data
+    const resJson = await res.json();
+    if (res.ok) {
+        console.log(resJson);
+    } else {
+        console.log(resJson)
+    }
+
 
 }

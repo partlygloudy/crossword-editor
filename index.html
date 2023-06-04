@@ -7,8 +7,11 @@
 	<!-- Character encoding -->
     <meta charset="UTF-8">
 
+    <!-- Viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <!-- CSS -->
-	<link rel="stylesheet" type="text/css" href="css/style.css">
+	<link rel="stylesheet" type="text/css" href="static/css/style.css">
 
     <!-- Scripts for connecting to firebase and syncing multiplayer games -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -17,7 +20,7 @@
 
     <!-- JQuery and javascript for card highlighting -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <script src="js/script.js"></script>
+    <script src="static/js/script.js"></script>
 
 </head>
 
@@ -57,6 +60,9 @@
             </div>
             <div class="cursor-mode-button" id="cursor-button-multi">Multi-Letter</div>
         </div>
+
+        <!-- Button to open puzzle-from-picture window -->
+        <div id="scan-puzzle-button">Use Photo</div>
 
     </div>
 
@@ -132,6 +138,48 @@
             <label for="input-join-game" class="multiplayer-panel-label">GAME CODE:</label>
             <input type="text" class="multiplayer-panel-input" id="input-use-join-code" />
             <div class="multiplayer-panel-button" id="join-game-button">JOIN</div>
+        </div>
+
+    </div>
+
+
+    <!-- Puzzle-from-photo overlay window -->
+    <!-- Shadow element covers the full screen, uses opacity to create shadow effect -->
+    <div id="pfp-overlay-shadow">
+
+        <!-- Pop-up window, appears when "Use Photo" button clicked -->
+        <div id="pfp-overlay">
+
+            <!-- Element for displaying the image after it's selected -->
+            <img id="pfp-img" />
+
+            <!-- SVG overlay for drawing outline of puzzle as corners are selected -->
+            <div id="pfp-svg-wrapper">
+                <svg id="pfp-img-overlay" xmlns="http://www.w3.org/2000/svg"></svg>
+            </div>
+
+            <!-- Exit button for popup window -->
+            <div id="pfp-overlay-exit">X</div>
+
+            <!-- Wrapper for control buttons -->
+            <div id="pfp-button-wrapper">
+
+                <!-- File input for selecting image to use -->
+                <label id="pfp-img-select-button" class="pfp-button">
+                    <input type="file" id="pfp-img-select" />
+                    Select File
+                </label>
+
+                <!-- Button to clear any corner points that have been placed already -->
+                <div id="pfp-clear-button" class="pfp-button">Clear</div>
+
+                <!-- Submit button - sends image and corner coords to the server -->
+                <div id="pfp-submit-button" class="pfp-button">Submit</div>
+
+            </div>
+
+
+
         </div>
 
     </div>
