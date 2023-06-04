@@ -1,16 +1,19 @@
 # Imports
-from PIL import Image
+from PIL import Image, ImageOps
 import cv2
 import numpy as np
 import json
-
 from flask import *
+
 
 # Initialize flask app
 app = Flask(__name__)
 
 
 def crossword_from_img(pil_image, rendered_height, corner_coords):
+
+    # Do this so image is properly rotated
+    pil_image = ImageOps.exif_transpose(pil_image)
 
     # Get the image as a numpy array
     img = np.array(pil_image)
@@ -42,7 +45,6 @@ def crossword_from_img(pil_image, rendered_height, corner_coords):
     img_clean = cv2.erode(img_clean, kernel, iterations=4)
 
     # Estimate the dimensions & square size (in pixels) for the puzzle
-
     best = [128.0, 128.0]  # score should always be lower than this
     dims = [0, 0]
     for i in range(10, 30):
@@ -55,19 +57,24 @@ def crossword_from_img(pil_image, rendered_height, corner_coords):
         row_scores = []
         col_scores = []
 
-        # Compute score for each column
+        # Compute score for each row/column
         for c in range(i):
 
-            # Extract cells - currently using checking row 5 of image
-            row_cells = img_clean[5, int(c * step_size): int((c + 1) * step_size)]
-            col_cells = img_clean[int(c * step_size): int((c + 1) * step_size), 5]
+            # Extract cells - currently checking 3 random rows/cols from image
+            row_cells = img_clean[10:390, int(c * step_size): int((c + 1) * step_size)]
+            col_cells = img_clean[int(c * step_size): int((c + 1) * step_size), 10:390]
 
             # Get the average cell value, compute the difference between this and 0 / 255
-            avgs = np.mean(row_cells), np.mean(col_cells)
-            scores = min(avgs[0], 255 - avgs[0]), min(avgs[1], 255 - avgs[1])
+            row_avgs = np.mean(row_cells, axis=1)
+            row_avgs = np.minimum(row_avgs, 255-row_avgs)
+            row_score = np.mean(row_avgs)
 
-            row_scores += [scores[0]]
-            col_scores += [scores[1]]
+            col_avgs = np.mean(col_cells, axis=0)
+            col_avgs = np.minimum(col_avgs, 255 - col_avgs)
+            col_score = np.mean(col_avgs)
+
+            row_scores += [row_score]
+            col_scores += [col_score]
 
         # Check if this is the lowest score so far
         row_score_avg = sum(row_scores) / i
