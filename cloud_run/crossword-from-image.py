@@ -131,11 +131,6 @@ def extract_crossword(pil_image, rendered_height, corner_coords):
     }
 
 
-@app.route('/', methods=['GET'])
-def get_home():
-    return open("index.html", "r")
-
-
 @app.route('/crossword-from-image', methods=['POST'])
 def crossword_from_image():
     """
