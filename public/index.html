@@ -29,7 +29,7 @@
     <!-- Text explaining options for editing puzzle and selectors for choosing which mode to use -->
     <div id="cursor-mode-panel">
 
-        <p id="cursor-mode-panel-text">Choose whether to place black squares, circles, highlighted squares, or multi-letter squares</p>
+        <p class="cursor-mode-panel-text">Choose whether to place black squares, circles, highlighted squares, or multi-letter squares</p>
 
         <!-- Selector for black square placement mode -->
         <div class="cursor-mode-row-wrapper">
@@ -60,6 +60,8 @@
             </div>
             <div class="cursor-mode-button" id="cursor-button-multi">Multi-Letter</div>
         </div>
+
+        <p class="cursor-mode-panel-text" id="scan-puzzle-text">you can also use a picture of the crossword to configure the puzzle automatically</p>
 
         <!-- Button to open puzzle-from-picture window -->
         <div id="scan-puzzle-button">Use Photo</div>
@@ -178,7 +180,8 @@
 
             </div>
 
-
+            <!-- Exit button for popup window -->
+            <div id="pfp-overlay-help">Click on the corners of the puzzle in clockwise order, starting from the top left corner</div>
 
         </div>
 
