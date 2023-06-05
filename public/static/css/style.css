@@ -65,7 +65,6 @@ input:focus {
     top: 0;
     left: 0;
     padding: 0 1px;
-    line-hight: 10px;
 }
 
 .puzzle-textbox-multi-label {
@@ -132,9 +131,6 @@ input:focus {
 
 #input-cols {
 	margin-right: 30px;
-}
-
-.config-label-rc {
 }
 
 #puzzle-config-blurb {
@@ -431,4 +427,125 @@ input:focus {
 #public-join-code-text {
 	font-style: italic;
 	color: darkgreen;
+}
+
+#scan-puzzle-button {
+	width: 100px;
+	height: 30px;
+	margin-top: 50px;
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	color: rgb(100, 100, 100);
+	cursor: pointer;
+	box-shadow: 0 0 5px 0 rgba(0,0,0,.15);
+	border: 1px solid rgba(0,0,0,0);
+	display: flex;
+	align-items: center;
+	justify-content: center;	
+}
+
+#scan-puzzle-button:hover {
+	background-color: rgb(240,240,240) !important;
+}
+
+#pfp-overlay-shadow {
+	display: none;
+	width: 100%;
+	height: 100%;
+	position: fixed;
+	top: 0;
+	left: 0;
+	background: rgba(0,0,0,.15);
+	align-items: center;
+	justify-content: center;
+}
+
+#pfp-overlay {
+	min-height: 50px;
+	min-width: 300px;
+	background-color: white;
+	position: relative;
+}
+
+#pfp-overlay-exit {
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	padding: 10px;
+	color: darkgray;
+	font-weight: bold;
+	font-size: 0.7rem;
+	font-family: cursive;
+	cursor: pointer;
+}
+
+#pfp-overlay-exit:hover {
+	color: black;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+#pfp-button-wrapper {
+    display: flex;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	margin: 10px;
+	flex-direction: row;
+	align-items: center;
+	justify-content: left;
+}
+
+.pfp-button {
+	padding: 6px 10px;
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	color: rgb(100, 100, 100);
+	cursor: pointer;
+	box-shadow: 0 0 5px 0 rgba(0,0,0,.15);
+	border: 1px solid rgba(0,0,0,0);
+	background-color: white;
+}
+
+#pfp-clear-button {
+	display: none;
+	background-color: rgb(255, 225, 225);
+	margin-left: 10px;
+}
+
+#pfp-submit-button {
+	display: none;
+	background-color: rgb(225, 255, 225);
+	margin-left: 10px;
+}
+
+.pfp-button:hover, #pfp-clear-button:hover, #pfp-submit-button:hover {
+	background-color: rgb(240,240,240);
+}
+
+#pfp-img {
+	display: block;
+	max-height: 90vh;
+	max-width: 90vw;
+}
+
+#pfp-img-overlay {
+	pointer-events: none;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+}
+
+#pfp-puzzle-outline {
+	fill: rgba(0, 255, 0, 0.1);
+	stroke: darkgreen;
+	stroke-width: 2px;
+}
+
+#pfp-puzzle-corner {
+	fill: rgba(0, 255, 0, 0.1);
+	stroke: darkgreen;
+	stroke-width: 2px;
 }

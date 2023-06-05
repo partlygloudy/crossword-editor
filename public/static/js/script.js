@@ -33,6 +33,10 @@ let syncActive = false;
 let gameOwner = false;
 let tabId = Math.floor(Math.random() * (9999999 - 1000000) + 1000000);
 
+// Puzzle-from-image vars
+let cornerCoords = [];
+
+
 $(document).ready(function(){
 
     // Load config options
@@ -59,6 +63,16 @@ $(document).ready(function(){
     // Event handler for publish and join buttons
     $("#publish-join-code-button").click(handleSetJoinCodeClick);
     $("#join-game-button").click(handleJoinGameClick);
+
+    // Event handlers for Puzzle-from-photo window
+    $("#scan-puzzle-button").click(openPfpWindow);
+    $("#pfp-overlay-shadow, #pfp-overlay-exit").click(closePfpWindow);
+    $("#pfp-overlay").click(pfpForegroundClick);
+    $('#pfp-img-select').on('change', pfpSelectImage);
+    $('#pfp-img').click(handleImageClicks).on("load", refreshSvgDimensions);
+    $("#pfp-clear-button").click(handlePfpClearClick);
+    $("#pfp-submit-button").click(handlePfpSubmitClick);
+
 
     // Connect to firebase
     initFirebase();
@@ -731,14 +745,14 @@ function initFirebase() {
             
     // Firebase configuration
     const firebaseConfig = {
-        apiKey: "AIzaSyCs50S4eVYCpY2lTtElUTunBGo-Rt47tLg",
-        authDomain: "crossword-editor.firebaseapp.com",
-        databaseURL: "https://crossword-editor-default-rtdb.firebaseio.com",
-        projectId: "crossword-editor",
-        storageBucket: "crossword-editor.appspot.com",
-        messagingSenderId: "805264714060",
-        appId: "1:805264714060:web:cdfdc0ddc389c0d21b07e9"
-    };
+        apiKey: "AIzaSyD8lCHf_lg4GBhUh_6WmwDV_k2HT8EZtwY",
+        authDomain: "crossword-editor-388723.firebaseapp.com",
+        projectId: "crossword-editor-388723",
+        storageBucket: "crossword-editor-388723.appspot.com",
+        messagingSenderId: "244229687373",
+        appId: "1:244229687373:web:967818aa834a5ed3843404",
+        measurementId: "G-316YMHFRXD"
+      };
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
@@ -949,5 +963,176 @@ function handleSyncedStateChange(snapshot) {
         renderPuzzle();
 
     }
+
+}
+
+
+function openPfpWindow() {
+    $("#pfp-overlay-shadow").css("display", "flex");
+}
+
+
+function closePfpWindow() {
+    $("#pfp-overlay-shadow").css("display", "none");
+}
+
+
+function pfpForegroundClick(event) {
+    event.stopPropagation();
+}
+
+
+function pfpSelectImage(e) {
+
+    // File reader to get file data
+    let reader = new FileReader();
+    
+    // Pass event on to reader's onload function, updated img elements src tag with file path
+    reader.onload = function(e) {
+        $('#pfp-img').attr('src', e.target.result);
+    }
+
+    // Read the data from the file
+    reader.readAsDataURL(e.target.files[0]);
+
+}
+
+
+function handleImageClicks(e) {
+
+    // Get origin of image relative to page
+    var imgOrigin = $(this).offset();
+
+    // Get x and y coords of clicks (in pixels), relative to image origin
+    var x = e.pageX - imgOrigin.left;
+    var y = e.pageY - imgOrigin.top;
+
+    // Add coords to list of coords
+    if (cornerCoords.length < 4) {
+        cornerCoords.push([x, y])    
+        refreshSvgOverlay();       // Refresh the svg overlay
+
+        // If all corners have been selected, show submit button
+        if (cornerCoords.length == 4) {
+            $("#pfp-submit-button").css("display", "block");
+        }
+
+    }
+
+    // If "clear" button is hidden, make it visible
+    if ($("#pfp-clear-button").is(":hidden")) {
+        $("#pfp-clear-button").css("display", "block");
+    }
+
+}
+
+
+function refreshSvgDimensions() {
+
+    // Scale the svg image overlay to match the image dimensions
+    $("#pfp-img-overlay").attr({
+        width: $('#pfp-img').width(),
+        height: $('#pfp-img').height()
+    });
+
+}
+
+
+function refreshSvgOverlay() {
+
+    // Clear prior contents of overlay
+    $("#pfp-img-overlay").empty();
+
+    // If no corners selected yet, nothing to draw
+    if (cornerCoords.length > 0) {
+
+        // Convert the list of points to the string format required for svg 'polygon' tag
+        let coordString = "";
+        for (var i=0; i<cornerCoords.length; i++) {
+
+            let coordX = cornerCoords[i][0];
+            let coordY =  cornerCoords[i][1];
+            
+            // Add corner to list of points of polygon
+            if (i != 0) {
+                coordString += " ";
+            }
+            coordString += `${coordX},${coordY}`
+
+            // Draw a circle at the corner
+            $("#pfp-img-overlay").append($(`<circle cx="${coordX}" cy="${coordY}" r=4 id="pfp-puzzle-corner" />`));
+
+        }
+
+        // Create polygon element, add to svg, and refresh svg
+        $("#pfp-img-overlay").append($(`<polygon points="${coordString}" id="pfp-puzzle-outline" />`));
+
+        // Trigger refresh of the element
+        $("#pfp-svg-wrapper").html($("#pfp-svg-wrapper").html());
+
+    }
+
+}
+
+
+function handlePfpClearClick() {
+
+    // Clear the list of corner coordinates
+    cornerCoords = []
+
+    // Hide the 'clear' and 'submit' buttons
+    $("#pfp-clear-button").css("display", "none");
+    $("#pfp-submit-button").css("display", "none");
+
+    // Re-render the SVG to get rid of corners and lines
+    refreshSvgOverlay();
+
+}
+
+
+async function handlePfpSubmitClick() {
+
+    // Get the data from the image input
+    const imageFile = $("#pfp-img-select")[0].files[0]; 
+
+    // Create form data for sending image and other data to server
+    let formData = new FormData();
+
+    // Add image file to form data
+    formData.append('image', imageFile); 
+
+    // Add info about the image size and corner coordinates to the form
+    let imageInfo = {
+        "renderedWidth": $("#pfp-img").width(),
+        "renderedHeight": $('#pfp-img').height(),
+        "cornerCoords": cornerCoords
+    }
+    formData.append('data', JSON.stringify(imageInfo)); 
+
+    // Send POST request to server
+    let endpoint = "/crossword-from-image"
+    const res = await fetch(endpoint, { 
+        method: 'POST',
+        body: formData
+    });
+    
+    // If response was successful, get update the puzzle config from the response data
+    const resJson = await res.json();
+    if (res.ok) {
+
+        // Refresh puzzle dimensions to match computed values
+        $("#input-rows").val(resJson.rows);
+        $("#input-cols").val(resJson.cols);
+        refreshPuzzleDims();
+
+        // Apply black/white cells to match computed grid
+        puzzle = resJson.puzzle;
+        renderPuzzle();
+        publishStateToFirebase();
+        
+    } else {
+        console.log(resJson)
+    }
+
 
 }
