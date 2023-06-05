@@ -6,19 +6,18 @@ import json
 import os
 from flask import *
 
-
 # Initialize flask app
 app = Flask(__name__)
 
 
 def extract_crossword(pil_image, rendered_height, corner_coords):
-  '''
+    """
 
-  Helper function to handle image processing - extracts the crossword
-  data from the image and returns a JSON containing the row count, 
-  column count, and a 2D array indicating black/white puzzle cells
+    Helper function to handle image processing - extracts the crossword
+    data from the image and returns a JSON containing the row count,
+    column count, and a 2D array indicating black/white puzzle cells
 
-  '''
+    """
 
     # Do this so image is properly rotated
     pil_image = ImageOps.exif_transpose(pil_image)
@@ -75,14 +74,13 @@ def extract_crossword(pil_image, rendered_height, corner_coords):
 
         # Compute score for each row/column
         for c in range(i):
-
             # Extract cells - currently checking 3 random rows/cols from image
             row_cells = img_clean[10:390, int(c * step_size): int((c + 1) * step_size)]
             col_cells = img_clean[int(c * step_size): int((c + 1) * step_size), 10:390]
 
             # Get the average cell value, compute the difference between this and 0 / 255
             row_avgs = np.mean(row_cells, axis=1)
-            row_avgs = np.minimum(row_avgs, 255-row_avgs)
+            row_avgs = np.minimum(row_avgs, 255 - row_avgs)
             row_score = np.mean(row_avgs)
 
             col_avgs = np.mean(col_cells, axis=0)
@@ -118,7 +116,6 @@ def extract_crossword(pil_image, rendered_height, corner_coords):
     # Classify each cell as black or white
     for r in range(dims[0]):
         for c in range(dims[1]):
-
             # Get the coordinates of the center of the square
             r_idx = int(r * row_size + (row_size / 2))
             c_idx = int(c * col_size + (col_size / 2))
@@ -157,9 +154,9 @@ def crossword_from_image():
         pil_image = Image.open(file.stream)
     except:
         return {
-            "success": False,
-            "errorString": "Failed attempting to read image"
-        }, 500
+                   "success": False,
+                   "errorString": "Failed attempting to read image"
+               }, 500
 
     # Extract the JSON data from the request
     try:
@@ -170,9 +167,9 @@ def crossword_from_image():
     except:
         print("Failed attempting to read JSON")
         return {
-            "success": False,
-            "errorString": "Failed attempting to read JSON data"
-        }, 500
+                   "success": False,
+                   "errorString": "Failed attempting to read JSON data"
+               }, 500
 
     # Get puzzle dimensions and
     try:
@@ -180,9 +177,9 @@ def crossword_from_image():
     except:
         print("An error occurred during crossword image processing")
         return {
-            "success": False,
-            "errorString": "Failed extracting crossword data from image"
-        }, 500
+                   "success": False,
+                   "errorString": "Failed extracting crossword data from image"
+               }, 500
 
     # Send success response
 
@@ -198,5 +195,4 @@ def crossword_from_image():
 
 # Run locally
 if __name__ == "__main__":
-    # test build trigger take 2
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
