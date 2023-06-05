@@ -70,6 +70,7 @@ $(document).ready(function(){
     $("#pfp-overlay").click(pfpForegroundClick);
     $('#pfp-img-select').on('change', pfpSelectImage);
     $('#pfp-img').click(handleImageClicks).on("load", refreshSvgDimensions);
+    $('#pfp-overlay-help').click(handleImageClicks)
     $("#pfp-clear-button").click(handlePfpClearClick);
     $("#pfp-submit-button").click(handlePfpSubmitClick);
 
@@ -995,13 +996,19 @@ function pfpSelectImage(e) {
     // Read the data from the file
     reader.readAsDataURL(e.target.files[0]);
 
+    // Clear existing saved corner points, hide buttons if they were visible
+    handlePfpClearClick()
+
+    // Show the help dialogue
+    $("#pfp-overlay-help").css("display", "block")
+
 }
 
 
 function handleImageClicks(e) {
 
     // Get origin of image relative to page
-    var imgOrigin = $(this).offset();
+    var imgOrigin = $("#pfp-img").offset();
 
     // Get x and y coords of clicks (in pixels), relative to image origin
     var x = e.pageX - imgOrigin.left;
@@ -1134,5 +1141,7 @@ async function handlePfpSubmitClick() {
         console.log(resJson)
     }
 
+    // Close the popup window
+    closePfpWindow();
 
 }
