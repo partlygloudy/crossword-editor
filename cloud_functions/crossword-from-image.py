@@ -5,8 +5,6 @@ import numpy as np
 import json
 from flask import *
 
-from matplotlib import pyplot as plt
-
 # Initialize flask app
 app = Flask(__name__)
 

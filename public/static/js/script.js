@@ -745,14 +745,14 @@ function initFirebase() {
             
     // Firebase configuration
     const firebaseConfig = {
-        apiKey: "AIzaSyCs50S4eVYCpY2lTtElUTunBGo-Rt47tLg",
-        authDomain: "crossword-editor.firebaseapp.com",
-        databaseURL: "https://crossword-editor-default-rtdb.firebaseio.com",
-        projectId: "crossword-editor",
-        storageBucket: "crossword-editor.appspot.com",
-        messagingSenderId: "805264714060",
-        appId: "1:805264714060:web:cdfdc0ddc389c0d21b07e9"
-    };
+        apiKey: "AIzaSyD8lCHf_lg4GBhUh_6WmwDV_k2HT8EZtwY",
+        authDomain: "crossword-editor-388723.firebaseapp.com",
+        projectId: "crossword-editor-388723",
+        storageBucket: "crossword-editor-388723.appspot.com",
+        messagingSenderId: "244229687373",
+        appId: "1:244229687373:web:967818aa834a5ed3843404",
+        measurementId: "G-316YMHFRXD"
+      };
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
