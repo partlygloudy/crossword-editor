@@ -9,7 +9,14 @@ from flask import *
 app = Flask(__name__)
 
 
-def crossword_from_img(pil_image, rendered_height, corner_coords):
+def extract_crossword(pil_image, rendered_height, corner_coords):
+  '''
+
+  Helper function to handle image processing - extracts the crossword
+  data from the image and returns a JSON containing the row count, 
+  column count, and a 2D array indicating black/white puzzle cells
+
+  '''
 
     # Do this so image is properly rotated
     pil_image = ImageOps.exif_transpose(pil_image)
@@ -130,16 +137,22 @@ def get_home():
 
 
 @app.route('/crossword-from-image', methods=['POST'])
-def image_to_crossword():
-    """
-    Dearest Jake,
-    Please add some documentation here at some point.
-
-    Best,
-    Jake
+def crossword_from_image():
     """
 
-    # --- DATA EXTRACTION --- #
+    Requests to the Cloud Functions endpoint are routed to this handler function.
+    The function first attempts to read the image data from the request, followed
+    by the expected JSON data. If these are successful, it calls the extract_crossword
+    helper function, which uses image processing to get the puzzle configuration from
+    the image.
+
+    The function expects a POST request containing form data with 2 fields:
+    > 'image' which is an image file to read the crossword from
+    > 'data' which contains the rendered height of the image in the browser, as well
+      as the coordinates of the corners of the crossword in the image (stored in a stringified
+      JSON object)
+
+    """
 
     # Extract image from request, convert to numpy array
     try:
@@ -166,7 +179,7 @@ def image_to_crossword():
 
     # Get puzzle dimensions and
     try:
-        crossword_data = crossword_from_img(pil_image, rendered_height, corner_coords)
+        crossword_data = extract_crossword(pil_image, rendered_height, corner_coords)
     except:
         print("An error occurred during crossword image processing")
         return {
