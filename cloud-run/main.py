@@ -3,7 +3,9 @@ from PIL import Image, ImageOps
 import cv2
 import numpy as np
 import json
+import os
 from flask import *
+
 
 # Initialize flask app
 app = Flask(__name__)
