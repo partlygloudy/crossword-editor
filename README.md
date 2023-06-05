@@ -4,6 +4,16 @@ This is a tool for editing / solving crosswords in a web-browser. I have some re
 
 Live at [crossword.gloudemans.fun](https://crossword.gloudemans.fun)
 
-***Update (5/7/23):*** *Now supports collaborative editing! You can create a game code and share it with your collaborators keep the state of the puzzle synced between different browsers. Did this using Firebase Realtime Database*
+### Cool features:
+
+**Collaborative Editing**: Different users can work together on a single puzzle - the host creates a game code, and other users can enter the game code to join. Any edits made by any user sync in real time for all participants
+
+**Picture-to-puzzle**: Rather than manually selecting all the black boxes to setup the puzzle, you can automatically set the puzzle up using a photo. Just upload a photo and select the corners of the puzzle in the image, and the puzzle will auto-adjust to the correct dimensions and autofill the black boxes.
+
+### Technologies used:
+
+- Hosting: Originally used GitHub pages, moved to Firebase Hosting when I started using other GCP services for the extra features
+- Collaborative editing: Firebase Realtime Database makes this really straightforward. Just add the SDK in JavaScript and add some reading and writing and callbacks
+- Picture-to-puzzle: Made a really basic Cloud Run microservice with a single POST endpoint that takes in an image and spits out a grid of 1s and 0s representing the puzzle. Written in Python - Flask for the server, OpenCV / Numpy for the image processing
 
 ![Sreenshot of the crossword editor](crossword_editor.png)
