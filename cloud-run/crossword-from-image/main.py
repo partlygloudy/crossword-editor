@@ -62,7 +62,7 @@ def extract_crossword(pil_image, rendered_height, corner_coords):
     # Estimate the dimensions & square size (in pixels) for the puzzle
     best = [128.0, 128.0]  # score should always be lower than this
     dims = [0, 0]
-    for i in range(10, 30):
+    for i in range(10, 100):
 
         # Width of each column in pixels
         step_size = img_clean.shape[0] / float(i)
