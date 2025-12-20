@@ -25,6 +25,9 @@ selected_color = "R";
 multiletters = []
 selected_multi_num = 2;
 
+// Column / row limit
+let MAX_ROWS_COLS = 100;
+
 // Firebase data
 let firebaseUser;
 let puzzleId;
@@ -312,14 +315,14 @@ function refreshPuzzleDims() {
     rows = parseInt($("#input-rows").val())
     cols = parseInt($("#input-cols").val())
 
-    // Limit to 50 rows or columns
-    if (rows > 40) {
-        rows = 40;
-        $("#input-rows").val("40");
+    // Limit to max column / row dimensions
+    if (rows > MAX_ROWS_COLS) {
+        rows = MAX_ROWS_COLS;
+        $("#input-rows").val(MAX_ROWS_COLS);
     }
-    if (cols > 40) {
-        cols = 40;
-        $("#input-cols").val("40");
+    if (cols > MAX_ROWS_COLS) {
+        cols = MAX_ROWS_COLS;
+        $("#input-cols").val(MAX_ROWS_COLS);
     }
 
     // Add or remove rows if necessary
