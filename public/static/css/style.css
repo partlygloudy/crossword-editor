@@ -581,11 +581,3 @@ input[type="file"] {
 	stroke: darkgreen;
 	stroke-width: 2px;
 }
-
-
-/* --- FORMATTING FOR NARROW SCREENS --- */
-
-@media (max-width: 900px) {
-
-
-}
